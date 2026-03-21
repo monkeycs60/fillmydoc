@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { Link, useParams } from 'react-router-dom'
 import { FileUpload } from './components/FileUpload'
 import { MappingStep } from './components/MappingStep'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
@@ -6,9 +7,10 @@ import { useGenerator } from './hooks/useGenerator'
 
 function App() {
   const { t } = useTranslation()
+  const { locale } = useParams<{ locale: string }>()
   const {
     state, setTemplate, setCsv, setMapping,
-    setPrefix, setNameColumn, generate, reset
+    setPrefix, setNameColumn, generate, sendForSignature, reset
   } = useGenerator()
 
   return (
@@ -72,6 +74,7 @@ function App() {
               onPrefixChange={setPrefix}
               onNameColumnChange={setNameColumn}
               onGenerate={generate}
+              onSendForSignature={sendForSignature}
             />
           </div>
         )}
@@ -91,19 +94,42 @@ function App() {
             <svg className="w-10 h-10 mx-auto mb-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
-            <p className="text-lg font-medium text-green-700">
-              {t('done.title', { count: state.csvRowCount })}
-            </p>
-            <p className="text-sm text-gray-400 mt-1">
-              {t('done.subtitle')}
-            </p>
-            <button
-              onClick={reset}
-              className="mt-6 px-6 py-2 border border-gray-300 rounded-md text-sm
-                         text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              {t('done.restart')}
-            </button>
+            {state.signingDocuments ? (
+              <>
+                <p className="text-lg font-medium text-gray-900">
+                  {state.signingDocuments.length} documents
+                </p>
+                <Link
+                  to={`/${locale}/signing/${state.jobId}`}
+                  className="inline-block mt-6 px-6 py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-gray-800 transition-colors"
+                >
+                  {t('signing.dashboard_title')}
+                </Link>
+                <button
+                  onClick={reset}
+                  className="mt-4 block mx-auto px-6 py-2 border border-gray-300 rounded-md text-sm
+                             text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  {t('done.restart')}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-lg font-medium text-green-700">
+                  {t('done.title', { count: state.csvRowCount })}
+                </p>
+                <p className="text-sm text-gray-400 mt-1">
+                  {t('done.subtitle')}
+                </p>
+                <button
+                  onClick={reset}
+                  className="mt-6 px-6 py-2 border border-gray-300 rounded-md text-sm
+                             text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  {t('done.restart')}
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>

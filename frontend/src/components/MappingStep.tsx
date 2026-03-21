@@ -11,11 +11,12 @@ interface MappingStepProps {
   onPrefixChange: (prefix: string) => void
   onNameColumnChange: (col: string) => void
   onGenerate: () => void
+  onSendForSignature: () => void
 }
 
 export function MappingStep({
   variables, columns, mapping, prefix, nameColumn,
-  csvRowCount, onMapChange, onPrefixChange, onNameColumnChange, onGenerate
+  csvRowCount, onMapChange, onPrefixChange, onNameColumnChange, onGenerate, onSendForSignature
 }: MappingStepProps) {
   const { t } = useTranslation()
   const allMapped = variables.every(v => mapping[v])
@@ -96,6 +97,15 @@ export function MappingStep({
                    disabled:cursor-not-allowed transition-colors"
       >
         {t('mapping.generate', { count: csvRowCount })}
+      </button>
+      <button
+        onClick={onSendForSignature}
+        disabled={!allMapped}
+        className="w-full py-3 rounded-md font-medium text-gray-700 border border-gray-300
+                   hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400
+                   disabled:cursor-not-allowed transition-colors mt-3"
+      >
+        {t('signing.send_for_signature')}
       </button>
     </div>
   )

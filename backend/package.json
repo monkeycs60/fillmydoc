@@ -15,16 +15,21 @@
   "dependencies": {
     "@hono/node-server": "^1.19.11",
     "archiver": "^7.0.1",
+    "better-sqlite3": "^12.8.0",
     "docxtemplater": "^3.68.3",
+    "drizzle-orm": "^0.45.1",
     "hono": "^4.12.8",
     "papaparse": "^5.5.3",
+    "pdf-lib": "^1.17.1",
     "pizzip": "^3.2.0"
   },
   "devDependencies": {
     "@types/archiver": "^7.0.0",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.5.0",
     "@types/papaparse": "^5.5.2",
     "@types/pizzip": "^3.0.5",
+    "drizzle-kit": "^0.31.10",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }

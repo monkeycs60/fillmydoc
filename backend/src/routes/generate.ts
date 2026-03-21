@@ -3,11 +3,12 @@ import PizZip from 'pizzip'
 import Docxtemplater from 'docxtemplater'
 import Papa from 'papaparse'
 import archiver from 'archiver'
-import { writeFile, mkdir, rm } from 'fs/promises'
+import { writeFile, readFile, mkdir, rm } from 'fs/promises'
 import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
+import { db, signingRequests } from '../db/index'
 
 const execFileAsync = promisify(execFile)
 
@@ -86,6 +87,61 @@ generate.post('/', async (c) => {
       '--outdir', pdfDir,
       ...docxFiles
     ], { timeout: 120000 })
+
+    // Check if signing mode
+    const mode = formData.get('mode') as string
+
+    if (mode === 'sign') {
+      // Move PDFs to persistent storage
+      const persistDir = join(process.cwd(), 'data', 'pdfs', jobId)
+      await mkdir(persistDir, { recursive: true })
+
+      const documents = []
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i]
+        const fileLabel = nameColumn && row[nameColumn]
+          ? row[nameColumn].replace(/[^a-zA-Z0-9À-ÿ_\-\s]/g, '_').trim()
+          : String(i + 1).padStart(3, '0')
+        const fileName = prefixValue
+          ? `${prefixValue}_${fileLabel}`
+          : fileLabel
+
+        const srcPdf = join(pdfDir, `${fileName}.pdf`)
+        const destPdf = join(persistDir, `${fileName}.pdf`)
+
+        // Copy PDF to persistent storage
+        const pdfContent = await readFile(srcPdf)
+        await writeFile(destPdf, pdfContent)
+
+        const signingId = randomUUID()
+
+        // Insert signing request
+        db.insert(signingRequests).values({
+          id: signingId,
+          jobId,
+          fileName: `${fileName}.pdf`,
+          recipientName: row[nameColumn] || null,
+          recipientEmail: null, // could add email column mapping later
+          status: 'pending',
+          pdfPath: destPdf,
+          createdAt: new Date().toISOString()
+        }).run()
+
+        documents.push({
+          id: signingId,
+          fileName: `${fileName}.pdf`,
+          recipientName: row[nameColumn] || null,
+          status: 'pending',
+          signingUrl: `/sign/${signingId}`
+        })
+      }
+
+      // Cleanup tmp
+      await rm(tmpDir, { recursive: true, force: true })
+
+      return c.json({ jobId, documents })
+    }
 
     // Create zip of PDFs
     const archive = archiver('zip', { zlib: { level: 6 } })

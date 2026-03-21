@@ -20,3 +20,6 @@ Thumbs.db
 
 # Temp
 /tmp/
+
+# Database & stored PDFs
+data/

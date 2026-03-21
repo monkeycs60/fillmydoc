@@ -94,5 +94,27 @@
     "footer_legal": "Legal",
     "footer_terms": "Terms",
     "footer_contact": "Contact"
+  },
+  "signing": {
+    "page_title": "Document Signing",
+    "preview_label": "Document preview",
+    "sign_label": "Your full name",
+    "sign_placeholder": "First Last",
+    "sign_button": "Sign the document",
+    "sign_disclaimer": "By clicking \"Sign\", you agree that your name, the date, and your IP address will be added to the document as a simple electronic signature.",
+    "signed_title": "Document signed",
+    "signed_message": "This document was signed by {{name}} on {{date}}.",
+    "download_signed": "Download signed PDF",
+    "already_signed": "This document has already been signed.",
+    "not_found": "Document not found.",
+    "dashboard_title": "Signature tracking",
+    "dashboard_pending": "Pending",
+    "dashboard_signed": "Signed",
+    "dashboard_copy": "Copy link",
+    "dashboard_copied": "Copied!",
+    "dashboard_download_all": "Download all signed",
+    "dashboard_back": "← Back",
+    "send_for_signature": "Send for signature",
+    "or_download_zip": "or download zip"
   }
 }

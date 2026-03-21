@@ -94,5 +94,27 @@
     "footer_legal": "Impressum",
     "footer_terms": "AGB",
     "footer_contact": "Kontakt"
+  },
+  "signing": {
+    "page_title": "Dokumentunterzeichnung",
+    "preview_label": "Dokumentvorschau",
+    "sign_label": "Ihr vollständiger Name",
+    "sign_placeholder": "Vorname Nachname",
+    "sign_button": "Dokument unterschreiben",
+    "sign_disclaimer": "Mit Klick auf \"Unterschreiben\" stimmen Sie zu, dass Ihr Name, das Datum und Ihre IP-Adresse als einfache elektronische Signatur zum Dokument hinzugefügt werden.",
+    "signed_title": "Dokument unterschrieben",
+    "signed_message": "Dieses Dokument wurde von {{name}} am {{date}} unterschrieben.",
+    "download_signed": "Signiertes PDF herunterladen",
+    "already_signed": "Dieses Dokument wurde bereits unterschrieben.",
+    "not_found": "Dokument nicht gefunden.",
+    "dashboard_title": "Signatur-Tracking",
+    "dashboard_pending": "Ausstehend",
+    "dashboard_signed": "Unterschrieben",
+    "dashboard_copy": "Link kopieren",
+    "dashboard_copied": "Kopiert!",
+    "dashboard_download_all": "Alle signierten herunterladen",
+    "dashboard_back": "← Zurück",
+    "send_for_signature": "Zur Unterschrift senden",
+    "or_download_zip": "oder ZIP herunterladen"
   }
 }

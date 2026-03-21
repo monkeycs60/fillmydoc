@@ -5,6 +5,8 @@ import './index.css'
 import './i18n'
 import App from './App'
 import { LandingPage } from './pages/LandingPage'
+import { SigningPage } from './pages/SigningPage'
+import { SigningDashboard } from './pages/SigningDashboard'
 import { LocaleProvider } from './components/LocaleProvider'
 
 const supportedLocales = ['fr', 'en', 'es', 'de']
@@ -21,6 +23,8 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/" element={<Navigate to={`/${detectLocale()}`} replace />} />
         <Route path="/:locale" element={<LocaleProvider><LandingPage /></LocaleProvider>} />
         <Route path="/:locale/app" element={<LocaleProvider><App /></LocaleProvider>} />
+        <Route path="/:locale/sign/:token" element={<LocaleProvider><SigningPage /></LocaleProvider>} />
+        <Route path="/:locale/signing/:jobId" element={<LocaleProvider><SigningDashboard /></LocaleProvider>} />
         <Route path="*" element={<Navigate to={`/${detectLocale()}`} replace />} />
       </Routes>
     </BrowserRouter>

@@ -94,5 +94,27 @@
     "footer_legal": "Mentions légales",
     "footer_terms": "CGV",
     "footer_contact": "Contact"
+  },
+  "signing": {
+    "page_title": "Signature du document",
+    "preview_label": "Aperçu du document",
+    "sign_label": "Votre nom complet",
+    "sign_placeholder": "Prénom Nom",
+    "sign_button": "Signer le document",
+    "sign_disclaimer": "En cliquant sur « Signer », vous acceptez que votre nom, la date et votre adresse IP soient ajoutés au document en tant que signature électronique simple.",
+    "signed_title": "Document signé",
+    "signed_message": "Ce document a été signé par {{name}} le {{date}}.",
+    "download_signed": "Télécharger le PDF signé",
+    "already_signed": "Ce document a déjà été signé.",
+    "not_found": "Document introuvable.",
+    "dashboard_title": "Suivi des signatures",
+    "dashboard_pending": "En attente",
+    "dashboard_signed": "Signé",
+    "dashboard_copy": "Copier le lien",
+    "dashboard_copied": "Copié !",
+    "dashboard_download_all": "Télécharger tous les signés",
+    "dashboard_back": "← Retour",
+    "send_for_signature": "Envoyer pour signature",
+    "or_download_zip": "ou télécharger le zip"
   }
 }

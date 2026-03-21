@@ -12,6 +12,8 @@ export interface GeneratorState {
   nameColumn: string
   step: 'upload' | 'mapping' | 'generating' | 'done'
   error: string | null
+  jobId: string | null
+  signingDocuments: Array<{ id: string; fileName: string; recipientName: string | null; status: string; signingUrl: string }> | null
 }
 
 export function useGenerator() {
@@ -25,7 +27,9 @@ export function useGenerator() {
     prefix: '',
     nameColumn: '',
     step: 'upload',
-    error: null
+    error: null,
+    jobId: null,
+    signingDocuments: null
   })
 
   const setTemplate = async(file: File) => {
@@ -136,6 +140,44 @@ export function useGenerator() {
     }
   }
 
+  const sendForSignature = async() => {
+    if (!state.templateFile || !state.csvFile) return
+
+    setState(s => ({ ...s, step: 'generating', error: null }))
+
+    try {
+      const formData = new FormData()
+      formData.append('template', state.templateFile)
+      formData.append('csv', state.csvFile)
+      formData.append('mapping', JSON.stringify(state.mapping))
+      formData.append('prefix', state.prefix)
+      formData.append('nameColumn', state.nameColumn)
+      formData.append('mode', 'sign')
+
+      const res = await fetch('/api/generate', { method: 'POST', body: formData })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Generation failed')
+      }
+
+      const data = await res.json()
+
+      setState(s => ({
+        ...s,
+        step: 'done',
+        jobId: data.jobId,
+        signingDocuments: data.documents
+      }))
+    } catch (err) {
+      setState(s => ({
+        ...s,
+        step: 'mapping',
+        error: err instanceof Error ? err.message : 'Unknown error'
+      }))
+    }
+  }
+
   const reset = () => setState({
     templateFile: null,
     csvFile: null,
@@ -146,8 +188,10 @@ export function useGenerator() {
     prefix: '',
     nameColumn: '',
     step: 'upload',
-    error: null
+    error: null,
+    jobId: null,
+    signingDocuments: null
   })
 
-  return { state, setTemplate, setCsv, setMapping, setPrefix, setNameColumn, generate, reset }
+  return { state, setTemplate, setCsv, setMapping, setPrefix, setNameColumn, generate, sendForSignature, reset }
 }
