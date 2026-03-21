@@ -8,7 +8,8 @@
     "template_hint": "Drop your .docx with {variables}",
     "csv_label": "CSV File",
     "csv_hint": "Drop your .csv with the data",
-    "variables_detected": "{{count}} variables detected, {{rows}} rows in CSV"
+    "variables_detected": "{{count}} variables detected, {{rows}} rows in CSV",
+    "conditions_detected": "{{count}} optional conditions detected"
   },
   "mapping": {
     "back": "← Start over",
@@ -17,6 +18,8 @@
     "naming_title": "File naming",
     "prefix_placeholder": "Prefix (e.g. contract)",
     "example": "Example",
+    "conditions_title": "Optional conditions",
+    "conditions_hint": "Map each condition to a CSV column containing true/false, yes/no, or 1/0",
     "generate": "Generate {{count}} PDF documents"
   },
   "generating": {

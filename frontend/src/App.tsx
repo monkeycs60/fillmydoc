@@ -9,7 +9,7 @@ function App() {
   const { t } = useTranslation()
   const { locale } = useParams<{ locale: string }>()
   const {
-    state, setTemplate, setCsv, setMapping,
+    state, setTemplate, setCsv, setMapping, setConditionMapping,
     setPrefix, setNameColumn, generate, sendForSignature, reset
   } = useGenerator()
 
@@ -47,13 +47,22 @@ function App() {
               hint={t('upload.csv_hint')}
               icon="csv"
             />
-            {state.templateFile && state.csvFile && state.templateVariables.length > 0 && (
-              <p className="text-center text-sm text-green-600">
-                {t('upload.variables_detected', {
-                  count: state.templateVariables.length,
-                  rows: state.csvRowCount
-                })}
-              </p>
+            {state.templateFile && state.csvFile && (state.templateVariables.length > 0 || state.templateConditions.length > 0) && (
+              <div className="text-center text-sm text-green-600 space-y-1">
+                <p>
+                  {t('upload.variables_detected', {
+                    count: state.templateVariables.length,
+                    rows: state.csvRowCount
+                  })}
+                </p>
+                {state.templateConditions.length > 0 && (
+                  <p className="text-amber-600">
+                    {t('upload.conditions_detected', {
+                      count: state.templateConditions.length
+                    })}
+                  </p>
+                )}
+              </div>
             )}
           </div>
         )}
@@ -65,12 +74,15 @@ function App() {
             </button>
             <MappingStep
               variables={state.templateVariables}
+              conditions={state.templateConditions}
               columns={state.csvColumns}
               mapping={state.mapping}
+              conditionsMapping={state.conditionsMapping}
               prefix={state.prefix}
               nameColumn={state.nameColumn}
               csvRowCount={state.csvRowCount}
               onMapChange={setMapping}
+              onConditionMapChange={setConditionMapping}
               onPrefixChange={setPrefix}
               onNameColumnChange={setNameColumn}
               onGenerate={generate}

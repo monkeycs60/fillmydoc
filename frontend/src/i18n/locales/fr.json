@@ -8,7 +8,8 @@
     "template_hint": "Glissez votre .docx avec des {variables}",
     "csv_label": "Fichier CSV",
     "csv_hint": "Glissez votre .csv avec les données",
-    "variables_detected": "{{count}} variables détectées, {{rows}} lignes dans le CSV"
+    "variables_detected": "{{count}} variables détectées, {{rows}} lignes dans le CSV",
+    "conditions_detected": "{{count}} conditions optionnelles détectées"
   },
   "mapping": {
     "back": "← Recommencer",
@@ -17,6 +18,8 @@
     "naming_title": "Nommage des fichiers",
     "prefix_placeholder": "Préfixe (ex: contrat)",
     "example": "Exemple",
+    "conditions_title": "Conditions optionnelles",
+    "conditions_hint": "Associez chaque condition à une colonne CSV contenant true/false, oui/non ou 1/0",
     "generate": "Générer {{count}} documents PDF"
   },
   "generating": {

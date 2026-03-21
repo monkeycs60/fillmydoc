@@ -8,7 +8,8 @@
     "template_hint": "Ziehen Sie Ihre .docx mit {Variablen} hierher",
     "csv_label": "CSV-Datei",
     "csv_hint": "Ziehen Sie Ihre .csv mit den Daten hierher",
-    "variables_detected": "{{count}} Variablen erkannt, {{rows}} Zeilen in der CSV"
+    "variables_detected": "{{count}} Variablen erkannt, {{rows}} Zeilen in der CSV",
+    "conditions_detected": "{{count}} optionale Bedingungen erkannt"
   },
   "mapping": {
     "back": "← Neu starten",
@@ -17,6 +18,8 @@
     "naming_title": "Dateibenennung",
     "prefix_placeholder": "Präfix (z.B. Vertrag)",
     "example": "Beispiel",
+    "conditions_title": "Optionale Bedingungen",
+    "conditions_hint": "Ordnen Sie jede Bedingung einer CSV-Spalte mit true/false, ja/nein oder 1/0 zu",
     "generate": "{{count}} PDF-Dokumente generieren"
   },
   "generating": {

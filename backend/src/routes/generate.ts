@@ -27,6 +27,8 @@ generate.post('/', async (c) => {
   }
 
   const mapping: Record<string, string> = JSON.parse(mappingJson)
+  const conditionsJson = formData.get('conditions') as string
+  const conditionsMapping: Record<string, string> = conditionsJson ? JSON.parse(conditionsJson) : {}
 
   const csvText = await csvFile.text()
   const csvResult = Papa.parse<Record<string, string>>(csvText, {
@@ -50,9 +52,14 @@ generate.post('/', async (c) => {
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
 
-      const data: Record<string, string> = {}
+      const data: Record<string, string | boolean> = {}
       for (const [variable, csvColumn] of Object.entries(mapping)) {
         data[variable] = row[csvColumn] || ''
+      }
+      // Convert condition columns to booleans for docxtemplater {#condition} blocks
+      for (const [condition, csvColumn] of Object.entries(conditionsMapping)) {
+        const val = (row[csvColumn] || '').toString().trim().toLowerCase()
+        data[condition] = ['true', '1', 'oui', 'yes', 'ja', 'sí', 'si', 'x'].includes(val)
       }
 
       const zip = new PizZip(templateBuffer)

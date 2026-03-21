@@ -17,15 +17,27 @@ template.post('/parse', async (c) => {
   )
 
   const variables = new Set<string>()
+  const conditions = new Set<string>()
 
   for (const xmlPath of xmlFiles) {
     const content = zip.file(xmlPath)?.asText() || ''
     // docxtemplater uses {variable} syntax
     // But Word splits text across XML runs, so we need to strip XML tags first
     const textOnly = content.replace(/<[^>]+>/g, '')
-    const regex = /\{([^{}#/]+)\}/g
+
+    // Detect conditional blocks: {#condition}...{/condition}
+    const conditionRegex = /\{#([^{}]+)\}/g
     let match
-    while ((match = regex.exec(textOnly)) !== null) {
+    while ((match = conditionRegex.exec(textOnly)) !== null) {
+      const condName = match[1].trim()
+      if (condName && !condName.includes(' ')) {
+        conditions.add(condName)
+      }
+    }
+
+    // Detect simple variables: {variable} (exclude # and / prefixed ones)
+    const varRegex = /\{([^{}#/]+)\}/g
+    while ((match = varRegex.exec(textOnly)) !== null) {
       const varName = match[1].trim()
       if (varName && !varName.includes(' ')) {
         variables.add(varName)
@@ -35,6 +47,7 @@ template.post('/parse', async (c) => {
 
   return c.json({
     variables: Array.from(variables),
+    conditions: Array.from(conditions),
     filename: file.name
   })
 })
