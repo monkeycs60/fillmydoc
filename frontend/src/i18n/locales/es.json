@@ -8,7 +8,8 @@
     "template_hint": "Arrastra tu .docx con {variables}",
     "csv_label": "Archivo CSV",
     "csv_hint": "Arrastra tu .csv con los datos",
-    "variables_detected": "{{count}} variables detectadas, {{rows}} filas en el CSV"
+    "variables_detected": "{{count}} variables detectadas, {{rows}} filas en el CSV",
+    "conditions_detected": "{{count}} condiciones opcionales detectadas"
   },
   "mapping": {
     "back": "← Volver a empezar",
@@ -17,6 +18,8 @@
     "naming_title": "Nombre de archivos",
     "prefix_placeholder": "Prefijo (ej: contrato)",
     "example": "Ejemplo",
+    "conditions_title": "Condiciones opcionales",
+    "conditions_hint": "Asocie cada condición a una columna CSV con true/false, sí/no o 1/0",
     "generate": "Generar {{count}} documentos PDF"
   },
   "generating": {

@@ -5,9 +5,11 @@ export interface GeneratorState {
   templateFile: File | null
   csvFile: File | null
   templateVariables: string[]
+  templateConditions: string[]
   csvColumns: string[]
   csvRowCount: number
   mapping: Record<string, string>
+  conditionsMapping: Record<string, string>
   prefix: string
   nameColumn: string
   step: 'upload' | 'mapping' | 'generating' | 'done'
@@ -21,9 +23,11 @@ export function useGenerator() {
     templateFile: null,
     csvFile: null,
     templateVariables: [],
+    templateConditions: [],
     csvColumns: [],
     csvRowCount: 0,
     mapping: {},
+    conditionsMapping: {},
     prefix: '',
     nameColumn: '',
     step: 'upload',
@@ -49,6 +53,7 @@ export function useGenerator() {
         ...s,
         templateFile: file,
         templateVariables: data.variables,
+        templateConditions: data.conditions || [],
         error: null,
         step: s.csvFile ? 'mapping' : 'upload'
       }))
@@ -77,15 +82,24 @@ export function useGenerator() {
           if (match) autoMapping[variable] = match
         }
 
+        const autoConditionsMapping: Record<string, string> = {}
+        for (const condition of s.templateConditions) {
+          const match = columns.find(
+            col => col.toLowerCase().trim() === condition.toLowerCase().trim()
+          )
+          if (match) autoConditionsMapping[condition] = match
+        }
+
         return {
           ...s,
           csvFile: file,
           csvColumns: columns,
           csvRowCount: result.data.length,
           mapping: { ...s.mapping, ...autoMapping },
+          conditionsMapping: { ...s.conditionsMapping, ...autoConditionsMapping },
           nameColumn: columns[0] || '',
           error: null,
-          step: s.templateFile && s.templateVariables.length > 0 ? 'mapping' : 'upload'
+          step: s.templateFile && (s.templateVariables.length > 0 || s.templateConditions.length > 0) ? 'mapping' : 'upload'
         }
       })
     }
@@ -96,6 +110,13 @@ export function useGenerator() {
     setState(s => ({
       ...s,
       mapping: { ...s.mapping, [variable]: column }
+    }))
+  }
+
+  const setConditionMapping = (condition: string, column: string) => {
+    setState(s => ({
+      ...s,
+      conditionsMapping: { ...s.conditionsMapping, [condition]: column }
     }))
   }
 
@@ -112,6 +133,7 @@ export function useGenerator() {
       formData.append('template', state.templateFile)
       formData.append('csv', state.csvFile)
       formData.append('mapping', JSON.stringify(state.mapping))
+      formData.append('conditions', JSON.stringify(state.conditionsMapping))
       formData.append('prefix', state.prefix)
       formData.append('nameColumn', state.nameColumn)
 
@@ -150,6 +172,7 @@ export function useGenerator() {
       formData.append('template', state.templateFile)
       formData.append('csv', state.csvFile)
       formData.append('mapping', JSON.stringify(state.mapping))
+      formData.append('conditions', JSON.stringify(state.conditionsMapping))
       formData.append('prefix', state.prefix)
       formData.append('nameColumn', state.nameColumn)
       formData.append('mode', 'sign')
@@ -182,9 +205,11 @@ export function useGenerator() {
     templateFile: null,
     csvFile: null,
     templateVariables: [],
+    templateConditions: [],
     csvColumns: [],
     csvRowCount: 0,
     mapping: {},
+    conditionsMapping: {},
     prefix: '',
     nameColumn: '',
     step: 'upload',
@@ -193,5 +218,5 @@ export function useGenerator() {
     signingDocuments: null
   })
 
-  return { state, setTemplate, setCsv, setMapping, setPrefix, setNameColumn, generate, sendForSignature, reset }
+  return { state, setTemplate, setCsv, setMapping, setConditionMapping, setPrefix, setNameColumn, generate, sendForSignature, reset }
 }
