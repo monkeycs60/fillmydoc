@@ -12,6 +12,7 @@ export interface GeneratorState {
   conditionsMapping: Record<string, string>
   prefix: string
   nameColumn: string
+  emailColumn: string
   step: 'upload' | 'mapping' | 'generating' | 'done'
   error: string | null
   jobId: string | null
@@ -30,6 +31,7 @@ export function useGenerator() {
     conditionsMapping: {},
     prefix: '',
     nameColumn: '',
+    emailColumn: '',
     step: 'upload',
     error: null,
     jobId: null,
@@ -122,6 +124,7 @@ export function useGenerator() {
 
   const setPrefix = (prefix: string) => setState(s => ({ ...s, prefix }))
   const setNameColumn = (col: string) => setState(s => ({ ...s, nameColumn: col }))
+  const setEmailColumn = (col: string) => setState(s => ({ ...s, emailColumn: col }))
 
   const generate = async() => {
     if (!state.templateFile || !state.csvFile) return
@@ -136,6 +139,7 @@ export function useGenerator() {
       formData.append('conditions', JSON.stringify(state.conditionsMapping))
       formData.append('prefix', state.prefix)
       formData.append('nameColumn', state.nameColumn)
+      if (state.emailColumn) formData.append('emailColumn', state.emailColumn)
 
       const res = await fetch('/api/generate', { method: 'POST', body: formData })
 
@@ -175,6 +179,7 @@ export function useGenerator() {
       formData.append('conditions', JSON.stringify(state.conditionsMapping))
       formData.append('prefix', state.prefix)
       formData.append('nameColumn', state.nameColumn)
+      if (state.emailColumn) formData.append('emailColumn', state.emailColumn)
       formData.append('mode', 'sign')
 
       const res = await fetch('/api/generate', { method: 'POST', body: formData })
@@ -212,11 +217,12 @@ export function useGenerator() {
     conditionsMapping: {},
     prefix: '',
     nameColumn: '',
+    emailColumn: '',
     step: 'upload',
     error: null,
     jobId: null,
     signingDocuments: null
   })
 
-  return { state, setTemplate, setCsv, setMapping, setConditionMapping, setPrefix, setNameColumn, generate, sendForSignature, reset }
+  return { state, setTemplate, setCsv, setMapping, setConditionMapping, setPrefix, setNameColumn, setEmailColumn, generate, sendForSignature, reset }
 }

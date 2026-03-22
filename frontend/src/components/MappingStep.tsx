@@ -8,18 +8,20 @@ interface MappingStepProps {
   conditionsMapping: Record<string, string>
   prefix: string
   nameColumn: string
+  emailColumn: string
   csvRowCount: number
   onMapChange: (variable: string, column: string) => void
   onConditionMapChange: (condition: string, column: string) => void
   onPrefixChange: (prefix: string) => void
   onNameColumnChange: (col: string) => void
+  onEmailColumnChange: (col: string) => void
   onGenerate: () => void
   onSendForSignature: () => void
 }
 
 export function MappingStep({
-  variables, conditions, columns, mapping, conditionsMapping, prefix, nameColumn,
-  csvRowCount, onMapChange, onConditionMapChange, onPrefixChange, onNameColumnChange, onGenerate, onSendForSignature
+  variables, conditions, columns, mapping, conditionsMapping, prefix, nameColumn, emailColumn,
+  csvRowCount, onMapChange, onConditionMapChange, onPrefixChange, onNameColumnChange, onEmailColumnChange, onGenerate, onSendForSignature
 }: MappingStepProps) {
   const { t } = useTranslation()
   const allMapped = variables.every(v => mapping[v]) && conditions.every(c => conditionsMapping[c])
@@ -130,6 +132,27 @@ export function MappingStep({
         <p className="font-mono text-xs text-gray-400 mt-3">
           {t('mapping.example')}: {prefix || 'document'}_{nameColumn ? `[${nameColumn}]` : '001'}.pdf
         </p>
+      </div>
+
+      {/* Email column for signing */}
+      <div>
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
+          {t('mapping.email_title')}
+        </h2>
+        <p className="text-xs text-gray-400 mb-3">
+          {t('mapping.email_hint')}
+        </p>
+        <select
+          value={emailColumn}
+          onChange={(e) => onEmailColumnChange(e.target.value)}
+          className="w-full border-0 border-b border-gray-200 rounded-none bg-transparent
+                     px-1 py-2 text-sm focus:border-blue-600 focus:ring-0 outline-none"
+        >
+          <option value="">{t('mapping.email_none')}</option>
+          {columns.map(col => (
+            <option key={col} value={col}>{col}</option>
+          ))}
+        </select>
       </div>
 
       <button
