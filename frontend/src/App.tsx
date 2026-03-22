@@ -10,7 +10,7 @@ function App() {
   const { locale } = useParams<{ locale: string }>()
   const {
     state, setTemplate, setCsv, setMapping, setConditionMapping,
-    setPrefix, setNameColumn, generate, sendForSignature, reset
+    setPrefix, setNameColumn, setEmailColumn, generate, sendForSignature, reset
   } = useGenerator()
 
   return (
@@ -80,11 +80,13 @@ function App() {
               conditionsMapping={state.conditionsMapping}
               prefix={state.prefix}
               nameColumn={state.nameColumn}
+              emailColumn={state.emailColumn}
               csvRowCount={state.csvRowCount}
               onMapChange={setMapping}
               onConditionMapChange={setConditionMapping}
               onPrefixChange={setPrefix}
               onNameColumnChange={setNameColumn}
+              onEmailColumnChange={setEmailColumn}
               onGenerate={generate}
               onSendForSignature={sendForSignature}
             />

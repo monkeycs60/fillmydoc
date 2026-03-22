@@ -9,6 +9,7 @@ import { promisify } from 'util'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { db, signingRequests } from '../db/index'
+import { hashDocument, appendAuditEvent } from '../services/otp'
 
 const execFileAsync = promisify(execFile)
 
@@ -21,6 +22,7 @@ generate.post('/', async (c) => {
   const mappingJson = formData.get('mapping') as string
   const prefixValue = (formData.get('prefix') as string) || ''
   const nameColumn = formData.get('nameColumn') as string
+  const emailColumn = formData.get('emailColumn') as string | null
 
   if (!templateFile || !csvFile || !mappingJson) {
     return c.json({ error: 'Missing required fields' }, 400)
@@ -122,6 +124,16 @@ generate.post('/', async (c) => {
         await writeFile(destPdf, pdfContent)
 
         const signingId = randomUUID()
+        const docHash = hashDocument(pdfContent)
+        const recipientEmail = emailColumn && row[emailColumn] ? row[emailColumn].trim() : null
+
+        // Initial audit trail
+        const auditTrail = appendAuditEvent(null, 'document_created', {
+          fileName: `${fileName}.pdf`,
+          recipientName: row[nameColumn] || null,
+          recipientEmail,
+          documentHash: docHash,
+        })
 
         // Insert signing request
         db.insert(signingRequests).values({
@@ -129,9 +141,11 @@ generate.post('/', async (c) => {
           jobId,
           fileName: `${fileName}.pdf`,
           recipientName: row[nameColumn] || null,
-          recipientEmail: null, // could add email column mapping later
+          recipientEmail,
           status: 'pending',
           pdfPath: destPdf,
+          documentHash: docHash,
+          auditTrail,
           createdAt: new Date().toISOString()
         }).run()
 
@@ -139,6 +153,7 @@ generate.post('/', async (c) => {
           id: signingId,
           fileName: `${fileName}.pdf`,
           recipientName: row[nameColumn] || null,
+          recipientEmail,
           status: 'pending',
           signingUrl: `/sign/${signingId}`
         })
