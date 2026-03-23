@@ -1,10 +1,180 @@
 import { Hono } from 'hono'
 import { eq } from 'drizzle-orm'
-import { db, signingRequests } from '../db/index'
+import { db, signingRequests, branding } from '../db/index'
 import { readFile, writeFile } from 'fs/promises'
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+import { existsSync } from 'fs'
+import { PDFDocument, PDFImage, rgb, StandardFonts } from 'pdf-lib'
 import { generateOtp, verifyOtp, hashDocument, appendAuditEvent, parseAuditTrail } from '../services/otp'
 import { isEsignEnabled, createSigningRequest, getSigningStatus, downloadSignedDocument } from '../services/esignature'
+
+// ---------------------------------------------------------------------------
+// Helper: Parse hex color to rgb values (0-1 range)
+// ---------------------------------------------------------------------------
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const clean = hex.replace('#', '')
+  return {
+    r: parseInt(clean.substring(0, 2), 16) / 255,
+    g: parseInt(clean.substring(2, 4), 16) / 255,
+    b: parseInt(clean.substring(4, 6), 16) / 255,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Helper: Get branding config from DB
+// ---------------------------------------------------------------------------
+function getBrandingConfig() {
+  return db.select().from(branding).where(eq(branding.id, 'default')).get()
+}
+
+// ---------------------------------------------------------------------------
+// Helper: Draw branded signature block on PDF
+// ---------------------------------------------------------------------------
+async function drawSignatureBlock(
+  pdfDoc: Awaited<ReturnType<typeof PDFDocument.load>>,
+  opts: {
+    signerName: string
+    email: string
+    dateStr: string
+    signerIp: string
+    verificationMethod: string
+    docHash: string
+    docId: string
+  }
+) {
+  const brandingConfig = getBrandingConfig()
+  const primaryHex = brandingConfig?.primaryColor || '#2563eb'
+  const companyName = brandingConfig?.companyName || null
+  const { r, g, b } = hexToRgb(primaryHex)
+
+  const pages = pdfDoc.getPages()
+  const lastPage = pages[pages.length - 1]
+  const { width } = lastPage.getSize()
+
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+
+  const sigY = 45
+  const boxWidth = Math.min(width - 60, 500)
+
+  // Determine if we have a logo to embed
+  let logoImage: PDFImage | null = null
+  let logoWidth = 0
+  let logoHeight = 0
+
+  if (brandingConfig?.logoPath && existsSync(brandingConfig.logoPath)) {
+    try {
+      const logoBytes = await readFile(brandingConfig.logoPath)
+      const ext = brandingConfig.logoPath.split('.').pop()?.toLowerCase()
+      if (ext === 'png') {
+        logoImage = await pdfDoc.embedPng(logoBytes)
+      } else if (ext === 'jpg' || ext === 'jpeg') {
+        logoImage = await pdfDoc.embedJpg(logoBytes)
+      }
+      // SVG is not natively supported by pdf-lib, skip
+
+      if (logoImage) {
+        const dims = logoImage.scale(1)
+        const maxH = 25
+        const scale = maxH / dims.height
+        logoWidth = dims.width * scale
+        logoHeight = maxH
+      }
+    } catch (err) {
+      console.error('Failed to embed logo in PDF:', err)
+    }
+  }
+
+  // Increase box height if logo present
+  const boxHeight = logoImage ? 95 : 80
+
+  // Background box with branded border
+  lastPage.drawRectangle({
+    x: 30,
+    y: sigY - 15,
+    width: boxWidth,
+    height: boxHeight,
+    color: rgb(0.96, 0.97, 0.98),
+    borderColor: rgb(r, g, b),
+    borderWidth: 1,
+  })
+
+  let currentY = sigY + (logoImage ? 65 : 50)
+
+  // Logo + title line
+  if (logoImage) {
+    lastPage.drawImage(logoImage, {
+      x: 40,
+      y: currentY - 2,
+      width: logoWidth,
+      height: logoHeight,
+    })
+
+    // Title next to logo
+    const titleX = 40 + logoWidth + 8
+    lastPage.drawText(companyName ? `${companyName} — SIGNATURE ELECTRONIQUE` : 'SIGNATURE ELECTRONIQUE', {
+      x: titleX,
+      y: currentY + 7,
+      size: 7,
+      font: boldFont,
+      color: rgb(r, g, b),
+    })
+    currentY -= 15
+  } else {
+    lastPage.drawText(companyName ? `${companyName} — SIGNATURE ELECTRONIQUE` : 'SIGNATURE ELECTRONIQUE', {
+      x: 40,
+      y: currentY,
+      size: 7,
+      font: boldFont,
+      color: rgb(r, g, b),
+    })
+  }
+
+  // Signer info
+  currentY -= 14
+  lastPage.drawText(`Signe par : ${opts.signerName}`, {
+    x: 40,
+    y: currentY,
+    size: 9,
+    font: boldFont,
+    color: rgb(0.1, 0.1, 0.1),
+  })
+
+  currentY -= 13
+  lastPage.drawText(`Email verifie : ${opts.email}`, {
+    x: 40,
+    y: currentY,
+    size: 8,
+    font,
+    color: rgb(0.3, 0.3, 0.3),
+  })
+
+  currentY -= 13
+  lastPage.drawText(`Date : ${opts.dateStr}`, {
+    x: 40,
+    y: currentY,
+    size: 8,
+    font,
+    color: rgb(0.3, 0.3, 0.3),
+  })
+
+  currentY -= 13
+  lastPage.drawText(`Verification : ${opts.verificationMethod} | IP : ${opts.signerIp}`, {
+    x: 40,
+    y: currentY,
+    size: 7,
+    font,
+    color: rgb(0.5, 0.5, 0.5),
+  })
+
+  currentY -= 10
+  lastPage.drawText(`Hash SHA-256 : ${opts.docHash.slice(0, 32)}... | ID : ${opts.docId.slice(0, 8)}`, {
+    x: 40,
+    y: currentY,
+    size: 6,
+    font,
+    color: rgb(0.6, 0.6, 0.6),
+  })
+}
 
 const signing = new Hono()
 
@@ -207,78 +377,17 @@ signing.post('/:id/verify-otp', async (c) => {
   const pdfBytes = await readFile(doc.pdfPath)
   const pdfDoc = await PDFDocument.load(pdfBytes)
 
-  const pages = pdfDoc.getPages()
-  const lastPage = pages[pages.length - 1]
-  const { width } = lastPage.getSize()
-
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
-
-  // Enhanced signature block
-  const sigY = 45
-  const boxWidth = Math.min(width - 60, 500)
-
-  // Background box with border
-  lastPage.drawRectangle({
-    x: 30,
-    y: sigY - 15,
-    width: boxWidth,
-    height: 80,
-    color: rgb(0.96, 0.97, 0.98),
-    borderColor: rgb(0.2, 0.4, 0.7),
-    borderWidth: 1,
-  })
-
-  // Title line
-  lastPage.drawText('SIGNATURE ELECTRONIQUE', {
-    x: 40,
-    y: sigY + 50,
-    size: 7,
-    font: boldFont,
-    color: rgb(0.2, 0.4, 0.7),
-  })
-
-  // Signer info
-  lastPage.drawText(`Signé par : ${body.name.trim()}`, {
-    x: 40,
-    y: sigY + 36,
-    size: 9,
-    font: boldFont,
-    color: rgb(0.1, 0.1, 0.1),
-  })
-
-  lastPage.drawText(`Email vérifié : ${doc.recipientEmail || 'N/A'}`, {
-    x: 40,
-    y: sigY + 23,
-    size: 8,
-    font,
-    color: rgb(0.3, 0.3, 0.3),
-  })
-
-  lastPage.drawText(`Date : ${dateStr}`, {
-    x: 40,
-    y: sigY + 10,
-    size: 8,
-    font,
-    color: rgb(0.3, 0.3, 0.3),
-  })
-
-  lastPage.drawText(`Vérification : OTP email | IP : ${signerIp}`, {
-    x: 40,
-    y: sigY - 3,
-    size: 7,
-    font,
-    color: rgb(0.5, 0.5, 0.5),
-  })
-
-  // Document hash + ID
   const docHash = doc.documentHash || hashDocument(pdfBytes)
-  lastPage.drawText(`Hash SHA-256 : ${docHash.slice(0, 32)}... | ID : ${id.slice(0, 8)}`, {
-    x: 40,
-    y: sigY - 13,
-    size: 6,
-    font,
-    color: rgb(0.6, 0.6, 0.6),
+
+  // Draw branded signature block
+  await drawSignatureBlock(pdfDoc, {
+    signerName: body.name.trim(),
+    email: doc.recipientEmail || 'N/A',
+    dateStr,
+    signerIp,
+    verificationMethod: 'OTP email',
+    docHash,
+    docId: id,
   })
 
   // Save signed PDF
@@ -402,65 +511,18 @@ signing.post('/:id/sign', async (c) => {
 
   const pdfBytes = await readFile(doc.pdfPath)
   const pdfDoc = await PDFDocument.load(pdfBytes)
-  const pages = pdfDoc.getPages()
-  const lastPage = pages[pages.length - 1]
-  const { width } = lastPage.getSize()
-
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
-  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
-
-  const sigY = 45
-  const boxWidth = Math.min(width - 60, 500)
-
-  lastPage.drawRectangle({
-    x: 30,
-    y: sigY - 15,
-    width: boxWidth,
-    height: 80,
-    color: rgb(0.96, 0.97, 0.98),
-    borderColor: rgb(0.2, 0.4, 0.7),
-    borderWidth: 1,
-  })
-
-  lastPage.drawText('SIGNATURE ELECTRONIQUE', {
-    x: 40,
-    y: sigY + 50,
-    size: 7,
-    font: boldFont,
-    color: rgb(0.2, 0.4, 0.7),
-  })
-
-  lastPage.drawText(`Signé par : ${body.name.trim()}`, {
-    x: 40,
-    y: sigY + 36,
-    size: 9,
-    font: boldFont,
-    color: rgb(0.1, 0.1, 0.1),
-  })
-
-  lastPage.drawText(`Date : ${dateStr}`, {
-    x: 40,
-    y: sigY + 23,
-    size: 8,
-    font,
-    color: rgb(0.3, 0.3, 0.3),
-  })
-
-  lastPage.drawText(`IP : ${signerIp} | ID : ${id.slice(0, 8)}`, {
-    x: 40,
-    y: sigY + 10,
-    size: 7,
-    font,
-    color: rgb(0.5, 0.5, 0.5),
-  })
 
   const docHash = hashDocument(pdfBytes)
-  lastPage.drawText(`Hash SHA-256 : ${docHash.slice(0, 32)}...`, {
-    x: 40,
-    y: sigY - 3,
-    size: 6,
-    font,
-    color: rgb(0.6, 0.6, 0.6),
+
+  // Draw branded signature block
+  await drawSignatureBlock(pdfDoc, {
+    signerName: body.name.trim(),
+    email: doc.recipientEmail || 'N/A',
+    dateStr,
+    signerIp,
+    verificationMethod: 'simple',
+    docHash,
+    docId: id,
   })
 
   const signedPdfBytes = await pdfDoc.save()

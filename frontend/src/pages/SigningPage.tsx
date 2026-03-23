@@ -16,6 +16,12 @@ interface SigningDoc {
   requiresOtp: boolean
 }
 
+interface BrandingConfig {
+  primaryColor: string
+  companyName: string | null
+  hasLogo: boolean
+}
+
 type SigningStep = 'loading' | 'identity' | 'otp' | 'signing' | 'esign_redirect' | 'signed' | 'error'
 
 export function SigningPage() {
@@ -28,6 +34,19 @@ export function SigningPage() {
   const [otpCode, setOtpCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [devOtp, setDevOtp] = useState<string | null>(null)
+  const [branding, setBranding] = useState<BrandingConfig>({
+    primaryColor: '#2563eb',
+    companyName: null,
+    hasLogo: false,
+  })
+
+  // Fetch branding config
+  useEffect(() => {
+    fetch('/api/branding')
+      .then(r => r.json())
+      .then((data: BrandingConfig) => setBranding(data))
+      .catch(() => { /* keep defaults */ })
+  }, [])
 
   useEffect(() => {
     fetch(`/api/signing/${token}`)
@@ -161,7 +180,7 @@ export function SigningPage() {
   if (step === 'error' && !doc) {
     return (
       <div className="min-h-screen bg-white">
-        <div className="border-t-2 border-blue-600" />
+        <div className="border-t-2" style={{ borderColor: branding.primaryColor }} />
         <div className="max-w-xl mx-auto px-4 py-20 text-center">
           <p className="text-gray-500">{t('signing.not_found')}</p>
         </div>
@@ -173,11 +192,22 @@ export function SigningPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="border-t-2 border-blue-600" />
+      <div className="border-t-2" style={{ borderColor: branding.primaryColor }} />
 
       <div className="max-w-3xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="font-mono text-2xl font-bold text-gray-900">{t('signing.page_title')}</h1>
+          <div className="flex items-center gap-3">
+            {branding.hasLogo && (
+              <img
+                src="/api/branding/logo"
+                alt="Logo"
+                className="h-8 max-w-[120px] object-contain"
+              />
+            )}
+            <h1 className="font-mono text-2xl font-bold text-gray-900">
+              {branding.companyName || t('signing.page_title')}
+            </h1>
+          </div>
           <span className="text-sm text-gray-400 font-mono">{doc.fileName}</span>
         </div>
 
@@ -206,10 +236,10 @@ export function SigningPage() {
           <div className="border border-gray-200 rounded-md p-6">
             {/* Security badge */}
             <div className="flex items-center gap-2 mb-5 pb-4 border-b border-gray-100">
-              <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4" style={{ color: branding.primaryColor }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              <span className="text-xs font-medium text-blue-600 uppercase tracking-wider">
+              <span className="text-xs font-medium uppercase tracking-wider" style={{ color: branding.primaryColor }}>
                 {t('signing.secure_signing')}
               </span>
             </div>
@@ -222,7 +252,10 @@ export function SigningPage() {
               value={signerName}
               onChange={(e) => setSignerName(e.target.value)}
               placeholder={t('signing.sign_placeholder')}
-              className="w-full border-0 border-b border-gray-200 rounded-none bg-transparent px-0 py-2 text-lg focus:border-blue-600 focus:ring-0 outline-none mb-4"
+              className="w-full border-0 border-b border-gray-200 rounded-none bg-transparent px-0 py-2 text-lg focus:ring-0 outline-none mb-4"
+              style={{ '--tw-border-opacity': 1 } as React.CSSProperties}
+              onFocus={(e) => e.target.style.borderBottomColor = branding.primaryColor}
+              onBlur={(e) => e.target.style.borderBottomColor = ''}
             />
 
             {doc.requiresOtp && (
@@ -235,7 +268,9 @@ export function SigningPage() {
                   value={signerEmail}
                   onChange={(e) => setSignerEmail(e.target.value)}
                   placeholder={t('signing.email_placeholder')}
-                  className="w-full border-0 border-b border-gray-200 rounded-none bg-transparent px-0 py-2 text-lg focus:border-blue-600 focus:ring-0 outline-none mb-4"
+                  className="w-full border-0 border-b border-gray-200 rounded-none bg-transparent px-0 py-2 text-lg focus:ring-0 outline-none mb-4"
+                  onFocus={(e) => e.target.style.borderBottomColor = branding.primaryColor}
+                  onBlur={(e) => e.target.style.borderBottomColor = ''}
                 />
               </>
             )}
@@ -261,10 +296,10 @@ export function SigningPage() {
         {step === 'otp' && (
           <div className="border border-gray-200 rounded-md p-6">
             <div className="flex items-center gap-2 mb-5 pb-4 border-b border-gray-100">
-              <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4" style={{ color: branding.primaryColor }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              <span className="text-xs font-medium text-blue-600 uppercase tracking-wider">
+              <span className="text-xs font-medium uppercase tracking-wider" style={{ color: branding.primaryColor }}>
                 {t('signing.otp_verification')}
               </span>
             </div>
@@ -290,7 +325,9 @@ export function SigningPage() {
               value={otpCode}
               onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
               placeholder="000000"
-              className="w-full border-0 border-b border-gray-200 rounded-none bg-transparent px-0 py-2 text-2xl text-center font-mono tracking-[0.5em] focus:border-blue-600 focus:ring-0 outline-none mb-6"
+              className="w-full border-0 border-b border-gray-200 rounded-none bg-transparent px-0 py-2 text-2xl text-center font-mono tracking-[0.5em] focus:ring-0 outline-none mb-6"
+              onFocus={(e) => e.target.style.borderBottomColor = branding.primaryColor}
+              onBlur={(e) => e.target.style.borderBottomColor = ''}
             />
 
             <button
@@ -324,17 +361,18 @@ export function SigningPage() {
 
         {/* Step: E-sign redirect (OpenAPI.com) */}
         {step === 'esign_redirect' && doc.esignSigningUrl && (
-          <div className="border border-blue-200 bg-blue-50/30 rounded-md p-6 text-center">
-            <svg className="w-10 h-10 mx-auto mb-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="border border-gray-200 bg-gray-50/30 rounded-md p-6 text-center">
+            <svg className="w-10 h-10 mx-auto mb-3" style={{ color: branding.primaryColor }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
-            <p className="font-medium text-blue-800 mb-2">{t('signing.esign_redirect_title')}</p>
-            <p className="text-sm text-blue-700 mb-4">{t('signing.esign_redirect_message')}</p>
+            <p className="font-medium text-gray-800 mb-2">{t('signing.esign_redirect_title')}</p>
+            <p className="text-sm text-gray-600 mb-4">{t('signing.esign_redirect_message')}</p>
             <a
               href={doc.esignSigningUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block px-6 py-3 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+              className="inline-block px-6 py-3 text-white rounded-md text-sm font-medium transition-opacity hover:opacity-90"
+              style={{ backgroundColor: branding.primaryColor }}
             >
               {t('signing.esign_redirect_button')}
             </a>

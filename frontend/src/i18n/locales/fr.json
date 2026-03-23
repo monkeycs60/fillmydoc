@@ -140,5 +140,29 @@
     "dashboard_back": "← Retour",
     "send_for_signature": "Envoyer pour signature",
     "or_download_zip": "ou télécharger le zip"
+  },
+  "branding": {
+    "title": "Personnalisation",
+    "subtitle": "Personnalisez l'apparence de vos documents et pages de signature",
+    "back": "\u2190 Retour à l'app",
+    "logo_label": "Logo de l'entreprise",
+    "logo_hint": "Glissez-déposez votre logo ici, ou cliquez pour parcourir",
+    "logo_formats": "PNG, JPEG ou SVG \u2014 max 2 Mo",
+    "logo_type_error": "Type de fichier invalide. Acceptés : PNG, JPEG, SVG",
+    "logo_size_error": "Fichier trop volumineux. Maximum 2 Mo.",
+    "remove_logo": "Supprimer le logo",
+    "company_label": "Nom de l'entreprise",
+    "company_placeholder": "Votre Entreprise",
+    "company_hint": "Affiché sur les pages de signature et dans les blocs de signature PDF à la place de « FillMyDoc »",
+    "color_label": "Couleur principale",
+    "preview_label": "Aperçu en direct",
+    "preview_document": "Zone d'aperçu du document",
+    "preview_signed_by": "Signé par",
+    "preview_date": "Date",
+    "save": "Enregistrer la personnalisation",
+    "saving": "Enregistrement...",
+    "saved": "Personnalisation enregistrée avec succès !",
+    "load_error": "Impossible de charger les paramètres de personnalisation",
+    "delete_error": "Impossible de supprimer le logo"
   }
 }

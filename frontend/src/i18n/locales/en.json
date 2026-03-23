@@ -140,5 +140,29 @@
     "dashboard_back": "← Back",
     "send_for_signature": "Send for signature",
     "or_download_zip": "or download zip"
+  },
+  "branding": {
+    "title": "Custom Branding",
+    "subtitle": "Customize how your documents and signing pages look",
+    "back": "\u2190 Back to app",
+    "logo_label": "Company Logo",
+    "logo_hint": "Drag and drop your logo here, or click to browse",
+    "logo_formats": "PNG, JPEG or SVG \u2014 max 2 MB",
+    "logo_type_error": "Invalid file type. Accepted: PNG, JPEG, SVG",
+    "logo_size_error": "File too large. Maximum 2 MB.",
+    "remove_logo": "Remove logo",
+    "company_label": "Company Name",
+    "company_placeholder": "Your Company",
+    "company_hint": "Displayed on signing pages and in PDF signature blocks instead of \"FillMyDoc\"",
+    "color_label": "Primary Color",
+    "preview_label": "Live Preview",
+    "preview_document": "Document preview area",
+    "preview_signed_by": "Signed by",
+    "preview_date": "Date",
+    "save": "Save branding settings",
+    "saving": "Saving...",
+    "saved": "Branding settings saved successfully!",
+    "load_error": "Failed to load branding settings",
+    "delete_error": "Failed to delete logo"
   }
 }
