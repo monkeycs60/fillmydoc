@@ -22,5 +22,6 @@ export const signingRequests = sqliteTable('signing_requests', {
   esignRequestId: text('esign_request_id'), // external provider request ID
   esignSigningUrl: text('esign_signing_url'), // external signing URL
   auditTrail: text('audit_trail'), // JSON array of audit events
+  emailSentAt: text('email_sent_at'), // ISO timestamp of when signing email was sent
   createdAt: text('created_at').notNull(),
 })

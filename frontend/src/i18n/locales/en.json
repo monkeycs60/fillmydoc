@@ -139,6 +139,14 @@
     "dashboard_download_all": "Download all signed",
     "dashboard_back": "← Back",
     "send_for_signature": "Send for signature",
-    "or_download_zip": "or download zip"
+    "or_download_zip": "or download zip",
+    "email_send": "Send email",
+    "email_resend": "Resend",
+    "email_send_all": "Send all emails ({{count}})",
+    "email_sent_badge": "Sent",
+    "email_sent_at": "Email sent {{date}}",
+    "email_sent_success": "Email sent successfully!",
+    "email_send_error": "Failed to send email. Please check email configuration.",
+    "email_bulk_result": "{{sent}} emails sent, {{failed}} failed"
   }
 }

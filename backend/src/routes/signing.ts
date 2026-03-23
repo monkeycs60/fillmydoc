@@ -569,10 +569,234 @@ signing.get('/job/:jobId', async (c) => {
       signedByName: d.signedByName,
       documentHash: d.documentHash,
       esignProvider: d.esignProvider,
+      emailSentAt: d.emailSentAt,
       signingUrl: `/sign/${d.id}`,
     })),
   })
 })
+
+// ---------------------------------------------------------------------------
+// POST /:id/send-email — Send signing invitation email for a single document
+// ---------------------------------------------------------------------------
+signing.post('/:id/send-email', async (c) => {
+  const { id } = c.req.param()
+  const body = await c.req.json<{ baseUrl?: string; locale?: string }>().catch(() => ({} as { baseUrl?: string; locale?: string }))
+
+  const doc = db.select().from(signingRequests).where(eq(signingRequests.id, id)).get()
+
+  if (!doc) return c.json({ error: 'Document not found' }, 404)
+  if (doc.status === 'signed' || doc.status === 'esign_completed') {
+    return c.json({ error: 'Document already signed' }, 400)
+  }
+  if (!doc.recipientEmail) {
+    return c.json({ error: 'No recipient email for this document' }, 400)
+  }
+
+  const baseUrl = body.baseUrl || process.env.APP_URL || 'http://localhost:5173'
+  const locale = body.locale || 'fr'
+  const signingUrl = `${baseUrl}/${locale}/sign/${doc.id}`
+
+  const sent = await sendSigningEmail(
+    doc.recipientEmail,
+    doc.recipientName || doc.recipientEmail,
+    doc.fileName,
+    signingUrl,
+    locale,
+  )
+
+  if (!sent) {
+    return c.json({ error: 'Failed to send email. Check email configuration.' }, 500)
+  }
+
+  const now = new Date().toISOString()
+  const auditTrail = appendAuditEvent(doc.auditTrail, 'email_invitation_sent', {
+    email: doc.recipientEmail,
+    sentAt: now,
+  })
+
+  db.update(signingRequests)
+    .set({ emailSentAt: now, auditTrail })
+    .where(eq(signingRequests.id, id))
+    .run()
+
+  return c.json({ success: true, emailSentAt: now })
+})
+
+// ---------------------------------------------------------------------------
+// POST /job/:jobId/send-emails — Send signing emails for all pending docs in a job
+// ---------------------------------------------------------------------------
+signing.post('/job/:jobId/send-emails', async (c) => {
+  const { jobId } = c.req.param()
+  const body = await c.req.json<{ baseUrl?: string; locale?: string }>().catch(() => ({} as { baseUrl?: string; locale?: string }))
+
+  const docs = db.select().from(signingRequests).where(eq(signingRequests.jobId, jobId)).all()
+
+  if (docs.length === 0) {
+    return c.json({ error: 'No documents found for this job' }, 404)
+  }
+
+  const baseUrl = body.baseUrl || process.env.APP_URL || 'http://localhost:5173'
+  const locale = body.locale || 'fr'
+
+  const results: Array<{ id: string; email: string | null; success: boolean; error?: string }> = []
+
+  for (const doc of docs) {
+    // Skip already signed documents
+    if (doc.status === 'signed' || doc.status === 'esign_completed') {
+      results.push({ id: doc.id, email: doc.recipientEmail, success: false, error: 'already_signed' })
+      continue
+    }
+
+    // Skip documents without email
+    if (!doc.recipientEmail) {
+      results.push({ id: doc.id, email: null, success: false, error: 'no_email' })
+      continue
+    }
+
+    const signingUrl = `${baseUrl}/${locale}/sign/${doc.id}`
+
+    const sent = await sendSigningEmail(
+      doc.recipientEmail,
+      doc.recipientName || doc.recipientEmail,
+      doc.fileName,
+      signingUrl,
+      locale,
+    )
+
+    if (sent) {
+      const now = new Date().toISOString()
+      const auditTrail = appendAuditEvent(doc.auditTrail, 'email_invitation_sent', {
+        email: doc.recipientEmail,
+        sentAt: now,
+      })
+
+      db.update(signingRequests)
+        .set({ emailSentAt: now, auditTrail })
+        .where(eq(signingRequests.id, doc.id))
+        .run()
+
+      results.push({ id: doc.id, email: doc.recipientEmail, success: true })
+    } else {
+      results.push({ id: doc.id, email: doc.recipientEmail, success: false, error: 'send_failed' })
+    }
+  }
+
+  const sentCount = results.filter(r => r.success).length
+  const failedCount = results.filter(r => !r.success && r.error !== 'already_signed').length
+
+  return c.json({ success: true, sent: sentCount, failed: failedCount, results })
+})
+
+// ---------------------------------------------------------------------------
+// Helper: Send signing invitation email
+// ---------------------------------------------------------------------------
+async function sendSigningEmail(
+  email: string,
+  recipientName: string,
+  fileName: string,
+  signingUrl: string,
+  locale: string,
+): Promise<boolean> {
+  const resendKey = process.env.RESEND_API_KEY
+  if (!resendKey) {
+    console.log(`[EMAIL] No RESEND_API_KEY — would send signing email to ${email} with link ${signingUrl}`)
+    return false
+  }
+
+  // Localized strings
+  const i18n: Record<string, { subject: string; greeting: string; body: string; cta: string; footer: string; expiry: string }> = {
+    fr: {
+      subject: `FillMyDoc — Document a signer : ${fileName}`,
+      greeting: `Bonjour ${recipientName},`,
+      body: `Vous avez ete invite(e) a signer le document <strong>${fileName}</strong>. Cliquez sur le bouton ci-dessous pour consulter et signer le document.`,
+      cta: 'Signer le document',
+      footer: 'Si vous n\'avez pas demande cette signature, vous pouvez ignorer cet email.',
+      expiry: 'Ce lien est personnel et unique.',
+    },
+    en: {
+      subject: `FillMyDoc — Document to sign: ${fileName}`,
+      greeting: `Hello ${recipientName},`,
+      body: `You have been invited to sign the document <strong>${fileName}</strong>. Click the button below to review and sign the document.`,
+      cta: 'Sign the document',
+      footer: 'If you did not request this signature, you can ignore this email.',
+      expiry: 'This link is personal and unique.',
+    },
+    es: {
+      subject: `FillMyDoc — Documento para firmar: ${fileName}`,
+      greeting: `Hola ${recipientName},`,
+      body: `Ha sido invitado/a a firmar el documento <strong>${fileName}</strong>. Haga clic en el boton de abajo para revisar y firmar el documento.`,
+      cta: 'Firmar el documento',
+      footer: 'Si no solicito esta firma, puede ignorar este correo.',
+      expiry: 'Este enlace es personal y unico.',
+    },
+    de: {
+      subject: `FillMyDoc — Dokument zur Unterschrift: ${fileName}`,
+      greeting: `Hallo ${recipientName},`,
+      body: `Sie wurden eingeladen, das Dokument <strong>${fileName}</strong> zu unterschreiben. Klicken Sie auf die Schaltflache unten, um das Dokument zu prufen und zu unterschreiben.`,
+      cta: 'Dokument unterschreiben',
+      footer: 'Wenn Sie diese Unterschrift nicht angefordert haben, konnen Sie diese E-Mail ignorieren.',
+      expiry: 'Dieser Link ist personlich und einzigartig.',
+    },
+  }
+
+  const strings = i18n[locale] || i18n['fr']
+
+  try {
+    const fromEmail = process.env.EMAIL_FROM || 'FillMyDoc <noreply@fillmydoc.com>'
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${resendKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [email],
+        subject: strings.subject,
+        html: `
+          <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 520px; margin: 0 auto; background: #ffffff;">
+            <div style="border-top: 3px solid #2563eb; padding: 32px 0;">
+              <h2 style="color: #111827; font-size: 20px; margin: 0 0 4px; font-weight: 700;">FillMyDoc</h2>
+              <p style="color: #6b7280; font-size: 13px; margin: 0 0 28px;">Signature electronique</p>
+
+              <p style="color: #374151; font-size: 15px; margin: 0 0 16px;">${strings.greeting}</p>
+              <p style="color: #374151; font-size: 14px; line-height: 1.6; margin: 0 0 28px;">
+                ${strings.body}
+              </p>
+
+              <div style="text-align: center; margin: 32px 0;">
+                <a href="${signingUrl}"
+                   style="display: inline-block; background: #2563eb; color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 36px; border-radius: 6px;">
+                  ${strings.cta}
+                </a>
+              </div>
+
+              <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 14px 16px; margin: 24px 0;">
+                <p style="color: #6b7280; font-size: 12px; margin: 0 0 6px;">${strings.expiry}</p>
+                <p style="color: #9ca3af; font-size: 11px; margin: 0; word-break: break-all;">${signingUrl}</p>
+              </div>
+
+              <p style="color: #9ca3af; font-size: 12px; margin: 24px 0 0;">
+                ${strings.footer}
+              </p>
+            </div>
+          </div>
+        `,
+      }),
+    })
+
+    if (!res.ok) {
+      const errorBody = await res.text()
+      console.error(`Resend signing email error (${res.status}):`, errorBody)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error('Resend signing email error:', error)
+    return false
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Helper: Send OTP email

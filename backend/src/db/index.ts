@@ -54,6 +54,7 @@ const migrations: Array<[string, string]> = [
   ['esign_request_id', 'TEXT'],
   ['esign_signing_url', 'TEXT'],
   ['audit_trail', 'TEXT'],
+  ['email_sent_at', 'TEXT'],
 ]
 for (const [col, type] of migrations) {
   if (!columnNames.has(col)) {

@@ -139,6 +139,14 @@
     "dashboard_download_all": "Alle signierten herunterladen",
     "dashboard_back": "← Zurück",
     "send_for_signature": "Zur Unterschrift senden",
-    "or_download_zip": "oder ZIP herunterladen"
+    "or_download_zip": "oder ZIP herunterladen",
+    "email_send": "E-Mail senden",
+    "email_resend": "Erneut senden",
+    "email_send_all": "Alle E-Mails senden ({{count}})",
+    "email_sent_badge": "Gesendet",
+    "email_sent_at": "E-Mail gesendet am {{date}}",
+    "email_sent_success": "E-Mail erfolgreich gesendet!",
+    "email_send_error": "E-Mail-Versand fehlgeschlagen. Bitte E-Mail-Konfiguration prüfen.",
+    "email_bulk_result": "{{sent}} E-Mails gesendet, {{failed}} fehlgeschlagen"
   }
 }
