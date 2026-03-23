@@ -38,6 +38,7 @@
     "generation_failed": "La génération a échoué"
   },
   "landing": {
+    "nav_history": "Historique",
     "nav_pricing": "Tarifs",
     "nav_faq": "FAQ",
     "nav_cta": "Commencer",
@@ -100,6 +101,32 @@
     "footer_legal": "Mentions légales",
     "footer_terms": "CGV",
     "footer_contact": "Contact"
+  },
+  "history": {
+    "title": "Historique",
+    "subtitle": "Toutes vos generations de documents",
+    "new_generation": "Nouvelle generation",
+    "stat_total_docs": "Documents generes",
+    "stat_total_jobs": "Generations",
+    "stat_signing_rate": "Taux de signature",
+    "stat_avg_time": "Temps moyen",
+    "filter_mode": "Mode",
+    "filter_all": "Tous",
+    "filter_template": "Template",
+    "filter_template_placeholder": "Rechercher...",
+    "filter_date_from": "Du",
+    "filter_date_to": "Au",
+    "filter_reset": "Reinitialiser",
+    "mode_download": "Telechargement",
+    "mode_sign": "Signature",
+    "docs": "docs",
+    "documents": "Documents",
+    "view_signing_dashboard": "Voir le suivi des signatures",
+    "download_completed": "Telechargement termine. Le zip a ete envoye.",
+    "empty": "Aucune generation pour le moment.",
+    "empty_cta": "Generer vos premiers documents",
+    "prev": "Precedent",
+    "next": "Suivant"
   },
   "signing": {
     "page_title": "Signature du document",

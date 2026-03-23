@@ -38,6 +38,7 @@
     "generation_failed": "Generierung fehlgeschlagen"
   },
   "landing": {
+    "nav_history": "Verlauf",
     "nav_pricing": "Preise",
     "nav_faq": "FAQ",
     "nav_cta": "Loslegen",
@@ -100,6 +101,32 @@
     "footer_legal": "Impressum",
     "footer_terms": "AGB",
     "footer_contact": "Kontakt"
+  },
+  "history": {
+    "title": "Verlauf",
+    "subtitle": "Alle Ihre Dokumentengenerierungen",
+    "new_generation": "Neue Generierung",
+    "stat_total_docs": "Generierte Dokumente",
+    "stat_total_jobs": "Generierungen",
+    "stat_signing_rate": "Signaturrate",
+    "stat_avg_time": "Durchschn. Zeit",
+    "filter_mode": "Modus",
+    "filter_all": "Alle",
+    "filter_template": "Vorlage",
+    "filter_template_placeholder": "Suchen...",
+    "filter_date_from": "Von",
+    "filter_date_to": "Bis",
+    "filter_reset": "Zurucksetzen",
+    "mode_download": "Download",
+    "mode_sign": "Signatur",
+    "docs": "Dok.",
+    "documents": "Dokumente",
+    "view_signing_dashboard": "Signatur-Tracking anzeigen",
+    "download_completed": "Download abgeschlossen. Die ZIP wurde gesendet.",
+    "empty": "Noch keine Generierungen.",
+    "empty_cta": "Erste Dokumente generieren",
+    "prev": "Zuruck",
+    "next": "Weiter"
   },
   "signing": {
     "page_title": "Dokumentunterzeichnung",

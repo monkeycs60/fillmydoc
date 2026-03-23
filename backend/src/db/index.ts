@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
-import { signingRequests } from './schema'
+import { signingRequests, jobs } from './schema'
 import { join } from 'path'
 import { mkdirSync } from 'fs'
 
@@ -12,7 +12,18 @@ sqlite.pragma('journal_mode = WAL')
 
 export const db = drizzle(sqlite)
 
-// Create table if not exists
+// Create tables if not exists
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS jobs (
+    id TEXT PRIMARY KEY,
+    template_name TEXT NOT NULL,
+    csv_row_count INTEGER NOT NULL,
+    mode TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'completed',
+    created_at TEXT NOT NULL
+  )
+`)
+
 sqlite.exec(`
   CREATE TABLE IF NOT EXISTS signing_requests (
     id TEXT PRIMARY KEY,
@@ -61,4 +72,4 @@ for (const [col, type] of migrations) {
   }
 }
 
-export { signingRequests }
+export { signingRequests, jobs }

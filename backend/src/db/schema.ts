@@ -1,5 +1,14 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
 
+export const jobs = sqliteTable('jobs', {
+  id: text('id').primaryKey(), // UUID (same as jobId used in signing_requests)
+  templateName: text('template_name').notNull(),
+  csvRowCount: integer('csv_row_count').notNull(),
+  mode: text('mode').notNull(), // 'download' | 'sign'
+  status: text('status').notNull().default('completed'), // 'completed' | 'in_progress'
+  createdAt: text('created_at').notNull(),
+})
+
 export const signingRequests = sqliteTable('signing_requests', {
   id: text('id').primaryKey(), // UUID
   jobId: text('job_id').notNull(), // groups documents from the same generation
