@@ -194,5 +194,22 @@
     "reminder_save": "Save",
     "reminder_count": "Reminded {{count}}/{{max}} times",
     "reminder_next": "Next reminder: {{date}}"
+  },
+  "saved_templates": {
+    "title": "Saved mappings",
+    "save_button": "Save this mapping",
+    "name_placeholder": "Mapping name (e.g. Partner contracts)",
+    "saving": "Saving...",
+    "saved_success": "Mapping saved!",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "rename": "Rename",
+    "delete": "Delete",
+    "delete_confirm": "Delete this mapping?",
+    "variables_count": "variables",
+    "match_found": "Mapping found: \"{{name}}\"",
+    "match_description": "A saved mapping matches this template. Would you like to load it?",
+    "load_mapping": "Load mapping",
+    "dismiss": "Dismiss"
   }
 }

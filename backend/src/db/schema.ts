@@ -9,6 +9,21 @@ export const jobs = sqliteTable('jobs', {
   createdAt: text('created_at').notNull(),
 })
 
+export const savedTemplates = sqliteTable('saved_templates', {
+  id: text('id').primaryKey(), // UUID
+  name: text('name').notNull(),
+  templateHash: text('template_hash'), // SHA-256 hash of the docx file for auto-detection
+  variables: text('variables'), // JSON array of variable names
+  conditions: text('conditions'), // JSON array of condition names
+  mapping: text('mapping'), // JSON object: variable→column
+  conditionsMapping: text('conditions_mapping'), // JSON object: condition→column
+  prefix: text('prefix'),
+  nameColumn: text('name_column'),
+  emailColumn: text('email_column'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+})
+
 export const signingRequests = sqliteTable('signing_requests', {
   id: text('id').primaryKey(), // UUID
   jobId: text('job_id').notNull(), // groups documents from the same generation

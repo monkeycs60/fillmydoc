@@ -1,5 +1,20 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import Papa from 'papaparse'
+
+export interface SavedTemplate {
+  id: string
+  name: string
+  templateHash: string | null
+  variables: string[]
+  conditions: string[]
+  mapping: Record<string, string>
+  conditionsMapping: Record<string, string>
+  prefix: string
+  nameColumn: string
+  emailColumn: string
+  createdAt: string
+  updatedAt: string
+}
 
 export interface GeneratorState {
   templateFile: File | null
@@ -22,6 +37,17 @@ export interface GeneratorState {
   previewUrl: string | null
   previewLoading: boolean
   previewError: string | null
+  savedTemplates: SavedTemplate[]
+  templateHash: string | null
+  matchedTemplate: SavedTemplate | null
+  savedTemplatesLoaded: boolean
+}
+
+async function computeFileHash(file: File): Promise<string> {
+  const buffer = await file.arrayBuffer()
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 }
 
 export function useGenerator() {
@@ -45,17 +71,55 @@ export function useGenerator() {
     previewRowIndex: 0,
     previewUrl: null,
     previewLoading: false,
-    previewError: null
+    previewError: null,
+    savedTemplates: [],
+    templateHash: null,
+    matchedTemplate: null,
+    savedTemplatesLoaded: false,
   })
 
   const previewAbortRef = useRef<AbortController | null>(null)
 
-  const setTemplate = async(file: File) => {
+  // Load saved templates on mount
+  const loadSavedTemplates = useCallback(async () => {
+    try {
+      const res = await fetch('/api/saved-templates')
+      const data = await res.json()
+      setState(s => ({
+        ...s,
+        savedTemplates: data.templates || [],
+        savedTemplatesLoaded: true,
+      }))
+    } catch {
+      setState(s => ({ ...s, savedTemplatesLoaded: true }))
+    }
+  }, [])
+
+  useEffect(() => {
+    loadSavedTemplates()
+  }, [loadSavedTemplates])
+
+  const matchTemplateByHash = useCallback(async (hash: string) => {
+    try {
+      const res = await fetch(`/api/saved-templates/match/${hash}`)
+      const data = await res.json()
+      if (data.match) {
+        setState(s => ({ ...s, matchedTemplate: data.match }))
+      }
+    } catch {
+      // silently ignore match failures
+    }
+  }, [])
+
+  const setTemplate = async (file: File) => {
     const formData = new FormData()
     formData.append('template', file)
 
     try {
-      const res = await fetch('/api/template/parse', { method: 'POST', body: formData })
+      const [res, hash] = await Promise.all([
+        fetch('/api/template/parse', { method: 'POST', body: formData }),
+        computeFileHash(file),
+      ])
       const data = await res.json()
 
       if (data.error) {
@@ -68,9 +132,14 @@ export function useGenerator() {
         templateFile: file,
         templateVariables: data.variables,
         templateConditions: data.conditions || [],
+        templateHash: hash,
+        matchedTemplate: null,
         error: null,
-        step: s.csvFile ? 'mapping' : 'upload'
+        step: s.csvFile ? 'mapping' : 'upload',
       }))
+
+      // Check for auto-match
+      matchTemplateByHash(hash)
     } catch {
       setState(s => ({ ...s, error: 'Failed to parse template' }))
     }
@@ -82,7 +151,7 @@ export function useGenerator() {
       const text = e.target?.result as string
       const result = Papa.parse<Record<string, string>>(text, {
         header: true,
-        skipEmptyLines: true
+        skipEmptyLines: true,
       })
 
       const columns = result.meta.fields || []
@@ -114,7 +183,7 @@ export function useGenerator() {
           conditionsMapping: { ...s.conditionsMapping, ...autoConditionsMapping },
           nameColumn: columns[0] || '',
           error: null,
-          step: s.templateFile && (s.templateVariables.length > 0 || s.templateConditions.length > 0) ? 'mapping' : 'upload'
+          step: s.templateFile && (s.templateVariables.length > 0 || s.templateConditions.length > 0) ? 'mapping' : 'upload',
         }
       })
     }
@@ -124,14 +193,14 @@ export function useGenerator() {
   const setMapping = (variable: string, column: string) => {
     setState(s => ({
       ...s,
-      mapping: { ...s.mapping, [variable]: column }
+      mapping: { ...s.mapping, [variable]: column },
     }))
   }
 
   const setConditionMapping = (condition: string, column: string) => {
     setState(s => ({
       ...s,
-      conditionsMapping: { ...s.conditionsMapping, [condition]: column }
+      conditionsMapping: { ...s.conditionsMapping, [condition]: column },
     }))
   }
 
@@ -207,7 +276,99 @@ export function useGenerator() {
     }
   }, [])
 
-  const generate = async() => {
+  const saveTemplate = async (name: string) => {
+    try {
+      const res = await fetch('/api/saved-templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          templateHash: state.templateHash,
+          variables: state.templateVariables,
+          conditions: state.templateConditions,
+          mapping: state.mapping,
+          conditionsMapping: state.conditionsMapping,
+          prefix: state.prefix,
+          nameColumn: state.nameColumn,
+          emailColumn: state.emailColumn,
+        }),
+      })
+      const data = await res.json()
+
+      if (res.ok) {
+        setState(s => ({
+          ...s,
+          savedTemplates: [...s.savedTemplates, data],
+          matchedTemplate: data,
+        }))
+        return data as SavedTemplate
+      }
+      return null
+    } catch {
+      return null
+    }
+  }
+
+  const updateSavedTemplate = async (id: string, updates: Partial<Pick<SavedTemplate, 'name' | 'mapping' | 'conditionsMapping' | 'prefix' | 'nameColumn' | 'emailColumn'>>) => {
+    try {
+      const res = await fetch(`/api/saved-templates/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      })
+      const data = await res.json()
+
+      if (res.ok) {
+        setState(s => ({
+          ...s,
+          savedTemplates: s.savedTemplates.map(t => t.id === id ? data : t),
+          matchedTemplate: s.matchedTemplate?.id === id ? data : s.matchedTemplate,
+        }))
+        return data as SavedTemplate
+      }
+      return null
+    } catch {
+      return null
+    }
+  }
+
+  const deleteSavedTemplate = async (id: string) => {
+    try {
+      const res = await fetch(`/api/saved-templates/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (res.ok) {
+        setState(s => ({
+          ...s,
+          savedTemplates: s.savedTemplates.filter(t => t.id !== id),
+          matchedTemplate: s.matchedTemplate?.id === id ? null : s.matchedTemplate,
+        }))
+        return true
+      }
+      return false
+    } catch {
+      return false
+    }
+  }
+
+  const loadSavedTemplate = (template: SavedTemplate) => {
+    setState(s => ({
+      ...s,
+      mapping: template.mapping,
+      conditionsMapping: template.conditionsMapping,
+      prefix: template.prefix,
+      nameColumn: template.nameColumn,
+      emailColumn: template.emailColumn,
+      matchedTemplate: template,
+    }))
+  }
+
+  const dismissMatch = () => {
+    setState(s => ({ ...s, matchedTemplate: null }))
+  }
+
+  const generate = async () => {
     if (!state.templateFile || !state.csvFile) return
 
     setState(s => ({ ...s, step: 'generating', error: null }))
@@ -242,12 +403,12 @@ export function useGenerator() {
       setState(s => ({
         ...s,
         step: 'mapping',
-        error: err instanceof Error ? err.message : 'Unknown error'
+        error: err instanceof Error ? err.message : 'Unknown error',
       }))
     }
   }
 
-  const sendForSignature = async() => {
+  const sendForSignature = async () => {
     if (!state.templateFile || !state.csvFile) return
 
     setState(s => ({ ...s, step: 'generating', error: null }))
@@ -276,13 +437,13 @@ export function useGenerator() {
         ...s,
         step: 'done',
         jobId: data.jobId,
-        signingDocuments: data.documents
+        signingDocuments: data.documents,
       }))
     } catch (err) {
       setState(s => ({
         ...s,
         step: 'mapping',
-        error: err instanceof Error ? err.message : 'Unknown error'
+        error: err instanceof Error ? err.message : 'Unknown error',
       }))
     }
   }
@@ -295,7 +456,7 @@ export function useGenerator() {
     if (previewAbortRef.current) {
       previewAbortRef.current.abort()
     }
-    setState({
+    setState(s => ({
       templateFile: null,
       csvFile: null,
       templateVariables: [],
@@ -315,13 +476,32 @@ export function useGenerator() {
       previewRowIndex: 0,
       previewUrl: null,
       previewLoading: false,
-      previewError: null
-    })
+      previewError: null,
+      savedTemplates: s.savedTemplates,
+      templateHash: null,
+      matchedTemplate: null,
+      savedTemplatesLoaded: s.savedTemplatesLoaded,
+    }))
   }
 
   return {
-    state, setTemplate, setCsv, setMapping, setConditionMapping,
-    setPrefix, setNameColumn, setEmailColumn, generate, sendForSignature, reset,
-    setPreviewRowIndex, generatePreview
+    state,
+    setTemplate,
+    setCsv,
+    setMapping,
+    setConditionMapping,
+    setPrefix,
+    setNameColumn,
+    setEmailColumn,
+    generate,
+    sendForSignature,
+    reset,
+    setPreviewRowIndex,
+    generatePreview,
+    saveTemplate,
+    updateSavedTemplate,
+    deleteSavedTemplate,
+    loadSavedTemplate,
+    dismissMatch,
   }
 }

@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
-import { signingRequests, jobs } from './schema'
+import { signingRequests, jobs, savedTemplates } from './schema'
 import { join } from 'path'
 import { mkdirSync } from 'fs'
 
@@ -51,6 +51,24 @@ sqlite.exec(`
   )
 `)
 
+// Create saved_templates table if not exists
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS saved_templates (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    template_hash TEXT,
+    variables TEXT,
+    conditions TEXT,
+    mapping TEXT,
+    conditions_mapping TEXT,
+    prefix TEXT,
+    name_column TEXT,
+    email_column TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  )
+`)
+
 // Migrate existing tables — add new columns if missing
 const columns = sqlite.prepare("PRAGMA table_info(signing_requests)").all() as Array<{ name: string }>
 const columnNames = new Set(columns.map(c => c.name))
@@ -78,4 +96,4 @@ for (const [col, type] of migrations) {
   }
 }
 
-export { signingRequests, jobs }
+export { signingRequests, jobs, savedTemplates }

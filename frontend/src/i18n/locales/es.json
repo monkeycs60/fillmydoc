@@ -194,5 +194,22 @@
     "reminder_save": "Guardar",
     "reminder_count": "Recordado {{count}}/{{max}} veces",
     "reminder_next": "Proximo recordatorio: {{date}}"
+  },
+  "saved_templates": {
+    "title": "Mapeos guardados",
+    "save_button": "Guardar este mapeo",
+    "name_placeholder": "Nombre del mapeo (ej: Contratos de socios)",
+    "saving": "Guardando...",
+    "saved_success": "Mapeo guardado!",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar",
+    "rename": "Renombrar",
+    "delete": "Eliminar",
+    "delete_confirm": "Eliminar este mapeo?",
+    "variables_count": "variables",
+    "match_found": "Mapeo encontrado: \"{{name}}\"",
+    "match_description": "Un mapeo guardado corresponde a esta plantilla. Desea cargarlo?",
+    "load_mapping": "Cargar mapeo",
+    "dismiss": "Ignorar"
   }
 }

@@ -6,6 +6,7 @@ import generate from './routes/generate'
 import signing from './routes/signing'
 import { startScheduler } from './services/scheduler'
 import history from './routes/history'
+import savedTemplatesRoute from './routes/saved-templates'
 
 const app = new Hono()
 
@@ -17,6 +18,7 @@ app.route('/api/template', template)
 app.route('/api/generate', generate)
 app.route('/api/signing', signing)
 app.route('/api/history', history)
+app.route('/api/saved-templates', savedTemplatesRoute)
 
 serve({ fetch: app.fetch, port: 3001 })
 console.log('FillMyDoc backend running on http://localhost:3001')

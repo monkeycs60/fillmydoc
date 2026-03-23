@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 import { FileUpload } from './components/FileUpload'
 import { MappingStep } from './components/MappingStep'
+import { SavedTemplatesPanel } from './components/SavedTemplatesPanel'
 import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { useGenerator } from './hooks/useGenerator'
 
@@ -11,7 +12,8 @@ function App() {
   const {
     state, setTemplate, setCsv, setMapping, setConditionMapping,
     setPrefix, setNameColumn, setEmailColumn, generate, sendForSignature, reset,
-    setPreviewRowIndex, generatePreview
+    setPreviewRowIndex, generatePreview,
+    saveTemplate, updateSavedTemplate, deleteSavedTemplate, loadSavedTemplate, dismissMatch
   } = useGenerator()
 
   return (
@@ -37,6 +39,14 @@ function App() {
 
         {state.step === 'upload' && (
           <div className="space-y-4">
+            {state.savedTemplatesLoaded && (
+              <SavedTemplatesPanel
+                savedTemplates={state.savedTemplates}
+                onLoad={loadSavedTemplate}
+                onDelete={deleteSavedTemplate}
+                onRename={(id, name) => updateSavedTemplate(id, { name })}
+              />
+            )}
             <FileUpload
               label={t('upload.template_label')}
               accept=".docx"
@@ -88,6 +98,7 @@ function App() {
               nameColumn={state.nameColumn}
               emailColumn={state.emailColumn}
               csvRowCount={state.csvRowCount}
+              matchedTemplate={state.matchedTemplate}
               onMapChange={setMapping}
               onConditionMapChange={setConditionMapping}
               onPrefixChange={setPrefix}
@@ -105,6 +116,9 @@ function App() {
               previewError={state.previewError}
               onPreviewRowIndexChange={setPreviewRowIndex}
               onGeneratePreview={generatePreview}
+              onSaveTemplate={saveTemplate}
+              onLoadTemplate={loadSavedTemplate}
+              onDismissMatch={dismissMatch}
             />
           </div>
         )}

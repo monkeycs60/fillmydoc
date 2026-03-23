@@ -194,5 +194,22 @@
     "reminder_save": "Speichern",
     "reminder_count": "{{count}}/{{max}} Mal erinnert",
     "reminder_next": "Nachste Erinnerung: {{date}}"
+  },
+  "saved_templates": {
+    "title": "Gespeicherte Zuordnungen",
+    "save_button": "Diese Zuordnung speichern",
+    "name_placeholder": "Name der Zuordnung (z.B. Partnerverträge)",
+    "saving": "Speichern...",
+    "saved_success": "Zuordnung gespeichert!",
+    "confirm": "Bestätigen",
+    "cancel": "Abbrechen",
+    "rename": "Umbenennen",
+    "delete": "Löschen",
+    "delete_confirm": "Diese Zuordnung löschen?",
+    "variables_count": "Variablen",
+    "match_found": "Zuordnung gefunden: \"{{name}}\"",
+    "match_description": "Eine gespeicherte Zuordnung passt zu dieser Vorlage. Möchten Sie sie laden?",
+    "load_mapping": "Zuordnung laden",
+    "dismiss": "Ignorieren"
   }
 }
