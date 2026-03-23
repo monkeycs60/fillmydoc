@@ -23,5 +23,10 @@ export const signingRequests = sqliteTable('signing_requests', {
   esignSigningUrl: text('esign_signing_url'), // external signing URL
   auditTrail: text('audit_trail'), // JSON array of audit events
   emailSentAt: text('email_sent_at'), // ISO timestamp of when signing email was sent
+  reminderCount: integer('reminder_count').default(0), // number of reminders sent
+  lastReminderAt: text('last_reminder_at'), // ISO timestamp of last reminder
+  nextReminderAt: text('next_reminder_at'), // ISO timestamp of next scheduled reminder
+  maxReminders: integer('max_reminders').default(3), // max reminders to send
+  reminderIntervals: text('reminder_intervals'), // JSON array of day intervals, e.g. [3,7,14]
   createdAt: text('created_at').notNull(),
 })

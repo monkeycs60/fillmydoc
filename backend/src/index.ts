@@ -4,6 +4,7 @@ import { serve } from '@hono/node-server'
 import template from './routes/template'
 import generate from './routes/generate'
 import signing from './routes/signing'
+import { startScheduler } from './services/scheduler'
 
 const app = new Hono()
 
@@ -17,3 +18,6 @@ app.route('/api/signing', signing)
 
 serve({ fetch: app.fetch, port: 3001 })
 console.log('FillMyDoc backend running on http://localhost:3001')
+
+// Start the automatic reminder scheduler
+startScheduler()

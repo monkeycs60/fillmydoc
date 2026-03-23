@@ -147,6 +147,17 @@
     "email_sent_at": "E-Mail gesendet am {{date}}",
     "email_sent_success": "E-Mail erfolgreich gesendet!",
     "email_send_error": "E-Mail-Versand fehlgeschlagen. Bitte E-Mail-Konfiguration prüfen.",
-    "email_bulk_result": "{{sent}} E-Mails gesendet, {{failed}} fehlgeschlagen"
+    "email_bulk_result": "{{sent}} E-Mails gesendet, {{failed}} fehlgeschlagen",
+    "reminder_configure": "Erinnerungen konfigurieren",
+    "reminder_settings": "Automatische Erinnerungen",
+    "reminder_max_label": "Max Erinnerungen pro Dokument",
+    "reminder_disabled": "Deaktiviert",
+    "reminder_interval_label": "Erinnerungsplan",
+    "reminder_interval_default": "Standard (T+3, T+7, T+14)",
+    "reminder_interval_frequent": "Haufig (T+1, T+3, T+5, T+7)",
+    "reminder_interval_relaxed": "Entspannt (T+5, T+14, T+30)",
+    "reminder_save": "Speichern",
+    "reminder_count": "{{count}}/{{max}} Mal erinnert",
+    "reminder_next": "Nachste Erinnerung: {{date}}"
   }
 }

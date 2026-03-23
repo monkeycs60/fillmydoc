@@ -147,6 +147,17 @@
     "email_sent_at": "Email enviado el {{date}}",
     "email_sent_success": "¡Email enviado con éxito!",
     "email_send_error": "Error al enviar el email. Verifique la configuración de email.",
-    "email_bulk_result": "{{sent}} emails enviados, {{failed}} fallidos"
+    "email_bulk_result": "{{sent}} emails enviados, {{failed}} fallidos",
+    "reminder_configure": "Configurar recordatorios",
+    "reminder_settings": "Recordatorios automaticos",
+    "reminder_max_label": "Max recordatorios por documento",
+    "reminder_disabled": "Desactivado",
+    "reminder_interval_label": "Frecuencia de recordatorios",
+    "reminder_interval_default": "Estandar (D+3, D+7, D+14)",
+    "reminder_interval_frequent": "Frecuente (D+1, D+3, D+5, D+7)",
+    "reminder_interval_relaxed": "Espaciado (D+5, D+14, D+30)",
+    "reminder_save": "Guardar",
+    "reminder_count": "Recordado {{count}}/{{max}} veces",
+    "reminder_next": "Proximo recordatorio: {{date}}"
   }
 }

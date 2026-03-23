@@ -5,6 +5,7 @@ import { readFile, writeFile } from 'fs/promises'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import { generateOtp, verifyOtp, hashDocument, appendAuditEvent, parseAuditTrail } from '../services/otp'
 import { isEsignEnabled, createSigningRequest, getSigningStatus, downloadSignedDocument } from '../services/esignature'
+import { configureDocumentReminders, configureJobReminders } from '../services/reminder'
 
 const signing = new Hono()
 
@@ -571,6 +572,11 @@ signing.get('/job/:jobId', async (c) => {
       esignProvider: d.esignProvider,
       emailSentAt: d.emailSentAt,
       signingUrl: `/sign/${d.id}`,
+      reminderCount: d.reminderCount ?? 0,
+      maxReminders: d.maxReminders ?? 3,
+      lastReminderAt: d.lastReminderAt,
+      nextReminderAt: d.nextReminderAt,
+      createdAt: d.createdAt,
     })),
   })
 })
@@ -797,6 +803,47 @@ async function sendSigningEmail(
     return false
   }
 }
+
+// ---------------------------------------------------------------------------
+// POST /:id/configure-reminders — Configure reminders for a single document
+// ---------------------------------------------------------------------------
+signing.post('/:id/configure-reminders', async (c) => {
+  const { id } = c.req.param()
+  const body = await c.req.json<{
+    maxReminders?: number
+    intervals?: number[]
+    enabled?: boolean
+  }>()
+
+  const success = configureDocumentReminders(id, {
+    maxReminders: body.maxReminders,
+    intervals: body.intervals,
+    enabled: body.enabled,
+  })
+
+  if (!success) return c.json({ error: 'Document not found' }, 404)
+  return c.json({ success: true })
+})
+
+// ---------------------------------------------------------------------------
+// POST /job/:jobId/configure-reminders — Configure reminders for all docs in a job
+// ---------------------------------------------------------------------------
+signing.post('/job/:jobId/configure-reminders', async (c) => {
+  const { jobId } = c.req.param()
+  const body = await c.req.json<{
+    maxReminders?: number
+    intervals?: number[]
+    enabled?: boolean
+  }>()
+
+  const updated = configureJobReminders(jobId, {
+    maxReminders: body.maxReminders,
+    intervals: body.intervals,
+    enabled: body.enabled,
+  })
+
+  return c.json({ success: true, updated })
+})
 
 // ---------------------------------------------------------------------------
 // Helper: Send OTP email

@@ -55,6 +55,11 @@ const migrations: Array<[string, string]> = [
   ['esign_signing_url', 'TEXT'],
   ['audit_trail', 'TEXT'],
   ['email_sent_at', 'TEXT'],
+  ['reminder_count', 'INTEGER DEFAULT 0'],
+  ['last_reminder_at', 'TEXT'],
+  ['next_reminder_at', 'TEXT'],
+  ['max_reminders', 'INTEGER DEFAULT 3'],
+  ['reminder_intervals', 'TEXT'],
 ]
 for (const [col, type] of migrations) {
   if (!columnNames.has(col)) {
