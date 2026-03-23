@@ -10,7 +10,8 @@ function App() {
   const { locale } = useParams<{ locale: string }>()
   const {
     state, setTemplate, setCsv, setMapping, setConditionMapping,
-    setPrefix, setNameColumn, setEmailColumn, generate, sendForSignature, reset
+    setPrefix, setNameColumn, setEmailColumn, generate, sendForSignature, reset,
+    setPreviewRowIndex, generatePreview
   } = useGenerator()
 
   return (
@@ -89,6 +90,16 @@ function App() {
               onEmailColumnChange={setEmailColumn}
               onGenerate={generate}
               onSendForSignature={sendForSignature}
+              templateFile={state.templateFile}
+              csvFile={state.csvFile}
+              csvRows={state.csvRows}
+              csvColumns={state.csvColumns}
+              previewRowIndex={state.previewRowIndex}
+              previewUrl={state.previewUrl}
+              previewLoading={state.previewLoading}
+              previewError={state.previewError}
+              onPreviewRowIndexChange={setPreviewRowIndex}
+              onGeneratePreview={generatePreview}
             />
           </div>
         )}

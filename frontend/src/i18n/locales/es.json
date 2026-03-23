@@ -101,6 +101,14 @@
     "footer_terms": "Términos",
     "footer_contact": "Contacto"
   },
+  "preview": {
+    "title": "Vista previa en vivo",
+    "row_label": "Fila",
+    "row_of": "Fila {{current}} de {{total}}",
+    "refresh": "Actualizar vista previa",
+    "configure_mapping": "Configure el mapeo de variables arriba para ver una vista previa en vivo de su documento.",
+    "generating": "Generando vista previa..."
+  },
   "signing": {
     "page_title": "Firma del documento",
     "preview_label": "Vista previa del documento",

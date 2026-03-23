@@ -196,4 +196,92 @@ generate.post('/', async (c) => {
   }
 })
 
+generate.post('/preview', async (c) => {
+  const formData = await c.req.formData()
+  const templateFile = formData.get('template') as File
+  const csvFile = formData.get('csv') as File
+  const mappingJson = formData.get('mapping') as string
+  const rowIndexStr = formData.get('rowIndex') as string
+
+  if (!templateFile || !csvFile || !mappingJson) {
+    return c.json({ error: 'Missing required fields' }, 400)
+  }
+
+  const rowIndex = parseInt(rowIndexStr || '0', 10)
+  const mapping: Record<string, string> = JSON.parse(mappingJson)
+  const conditionsJson = formData.get('conditions') as string
+  const conditionsMapping: Record<string, string> = conditionsJson ? JSON.parse(conditionsJson) : {}
+
+  const csvText = await csvFile.text()
+  const csvResult = Papa.parse<Record<string, string>>(csvText, {
+    header: true,
+    skipEmptyLines: true
+  })
+  const rows = csvResult.data
+
+  if (rowIndex < 0 || rowIndex >= rows.length) {
+    return c.json({ error: 'Row index out of range' }, 400)
+  }
+
+  const row = rows[rowIndex]
+  const templateBuffer = Buffer.from(await templateFile.arrayBuffer())
+
+  const jobId = randomUUID()
+  const tmpDir = join('/tmp', 'fillmydoc', `preview_${jobId}`)
+  const docxDir = join(tmpDir, 'docx')
+  const pdfDir = join(tmpDir, 'pdf')
+  await mkdir(docxDir, { recursive: true })
+  await mkdir(pdfDir, { recursive: true })
+
+  try {
+    const data: Record<string, string | boolean> = {}
+    for (const [variable, csvColumn] of Object.entries(mapping)) {
+      data[variable] = row[csvColumn] || ''
+    }
+    for (const [condition, csvColumn] of Object.entries(conditionsMapping)) {
+      const val = (row[csvColumn] || '').toString().trim().toLowerCase()
+      data[condition] = ['true', '1', 'oui', 'yes', 'ja', 'sí', 'si', 'x'].includes(val)
+    }
+
+    const zip = new PizZip(templateBuffer)
+    const doc = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+      nullGetter: () => ''
+    })
+    doc.render(data)
+    const docBuffer = doc.getZip().generate({ type: 'nodebuffer' })
+
+    const fileName = 'preview'
+    await writeFile(join(docxDir, `${fileName}.docx`), docBuffer)
+
+    await execFileAsync('soffice', [
+      '--headless',
+      '--nodefault',
+      '--nolockcheck',
+      '--nologo',
+      '--norestore',
+      '--convert-to', 'pdf',
+      '--outdir', pdfDir,
+      join(docxDir, `${fileName}.docx`)
+    ], { timeout: 30000 })
+
+    const pdfBuffer = await readFile(join(pdfDir, `${fileName}.pdf`))
+
+    await rm(tmpDir, { recursive: true, force: true })
+
+    return new Response(pdfBuffer, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Length': String(pdfBuffer.length),
+        'Cache-Control': 'no-cache'
+      }
+    })
+  } catch (error) {
+    await rm(tmpDir, { recursive: true, force: true }).catch(() => {})
+    console.error('Preview generation error:', error)
+    return c.json({ error: 'Preview generation failed', details: String(error) }, 500)
+  }
+})
+
 export default generate

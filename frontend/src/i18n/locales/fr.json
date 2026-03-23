@@ -101,6 +101,14 @@
     "footer_terms": "CGV",
     "footer_contact": "Contact"
   },
+  "preview": {
+    "title": "Apercu en direct",
+    "row_label": "Ligne",
+    "row_of": "Ligne {{current}} sur {{total}}",
+    "refresh": "Rafraichir l'apercu",
+    "configure_mapping": "Configurez le mapping des variables ci-dessus pour voir un apercu en direct de votre document.",
+    "generating": "Generation de l'apercu..."
+  },
   "signing": {
     "page_title": "Signature du document",
     "preview_label": "Aperçu du document",

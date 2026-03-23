@@ -101,6 +101,14 @@
     "footer_terms": "Terms",
     "footer_contact": "Contact"
   },
+  "preview": {
+    "title": "Live preview",
+    "row_label": "Row",
+    "row_of": "Row {{current}} of {{total}}",
+    "refresh": "Refresh preview",
+    "configure_mapping": "Configure the variable mapping above to see a live preview of your document.",
+    "generating": "Generating preview..."
+  },
   "signing": {
     "page_title": "Document Signing",
     "preview_label": "Document preview",

@@ -101,6 +101,14 @@
     "footer_terms": "AGB",
     "footer_contact": "Kontakt"
   },
+  "preview": {
+    "title": "Live-Vorschau",
+    "row_label": "Zeile",
+    "row_of": "Zeile {{current}} von {{total}}",
+    "refresh": "Vorschau aktualisieren",
+    "configure_mapping": "Konfigurieren Sie die Variablen-Zuordnung oben, um eine Live-Vorschau Ihres Dokuments zu sehen.",
+    "generating": "Vorschau wird generiert..."
+  },
   "signing": {
     "page_title": "Dokumentunterzeichnung",
     "preview_label": "Dokumentvorschau",
