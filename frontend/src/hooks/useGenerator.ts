@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import Papa from 'papaparse'
 
 export interface GeneratorState {
@@ -7,6 +7,7 @@ export interface GeneratorState {
   templateVariables: string[]
   templateConditions: string[]
   csvColumns: string[]
+  csvRows: Record<string, string>[]
   csvRowCount: number
   mapping: Record<string, string>
   conditionsMapping: Record<string, string>
@@ -17,6 +18,10 @@ export interface GeneratorState {
   error: string | null
   jobId: string | null
   signingDocuments: Array<{ id: string; fileName: string; recipientName: string | null; status: string; signingUrl: string }> | null
+  previewRowIndex: number
+  previewUrl: string | null
+  previewLoading: boolean
+  previewError: string | null
 }
 
 export function useGenerator() {
@@ -26,6 +31,7 @@ export function useGenerator() {
     templateVariables: [],
     templateConditions: [],
     csvColumns: [],
+    csvRows: [],
     csvRowCount: 0,
     mapping: {},
     conditionsMapping: {},
@@ -35,8 +41,14 @@ export function useGenerator() {
     step: 'upload',
     error: null,
     jobId: null,
-    signingDocuments: null
+    signingDocuments: null,
+    previewRowIndex: 0,
+    previewUrl: null,
+    previewLoading: false,
+    previewError: null
   })
+
+  const previewAbortRef = useRef<AbortController | null>(null)
 
   const setTemplate = async(file: File) => {
     const formData = new FormData()
@@ -96,6 +108,7 @@ export function useGenerator() {
           ...s,
           csvFile: file,
           csvColumns: columns,
+          csvRows: result.data,
           csvRowCount: result.data.length,
           mapping: { ...s.mapping, ...autoMapping },
           conditionsMapping: { ...s.conditionsMapping, ...autoConditionsMapping },
@@ -125,6 +138,74 @@ export function useGenerator() {
   const setPrefix = (prefix: string) => setState(s => ({ ...s, prefix }))
   const setNameColumn = (col: string) => setState(s => ({ ...s, nameColumn: col }))
   const setEmailColumn = (col: string) => setState(s => ({ ...s, emailColumn: col }))
+
+  const setPreviewRowIndex = (index: number) => {
+    setState(s => ({ ...s, previewRowIndex: index }))
+  }
+
+  const generatePreview = useCallback(async (
+    templateFile: File,
+    csvFile: File,
+    mapping: Record<string, string>,
+    conditionsMapping: Record<string, string>,
+    rowIndex: number
+  ) => {
+    // Abort any in-flight preview request
+    if (previewAbortRef.current) {
+      previewAbortRef.current.abort()
+    }
+
+    const abortController = new AbortController()
+    previewAbortRef.current = abortController
+
+    // Check that at least one variable is mapped
+    const hasMappings = Object.values(mapping).some(v => v !== '')
+    if (!hasMappings) {
+      return
+    }
+
+    setState(s => ({ ...s, previewLoading: true, previewError: null }))
+
+    try {
+      const formData = new FormData()
+      formData.append('template', templateFile)
+      formData.append('csv', csvFile)
+      formData.append('mapping', JSON.stringify(mapping))
+      formData.append('conditions', JSON.stringify(conditionsMapping))
+      formData.append('rowIndex', String(rowIndex))
+
+      const res = await fetch('/api/generate/preview', {
+        method: 'POST',
+        body: formData,
+        signal: abortController.signal
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Preview generation failed')
+      }
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+
+      setState(s => {
+        // Revoke old preview URL
+        if (s.previewUrl) {
+          URL.revokeObjectURL(s.previewUrl)
+        }
+        return { ...s, previewUrl: url, previewLoading: false, previewError: null }
+      })
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return // Silently ignore aborted requests
+      }
+      setState(s => ({
+        ...s,
+        previewLoading: false,
+        previewError: err instanceof Error ? err.message : 'Preview failed'
+      }))
+    }
+  }, [])
 
   const generate = async() => {
     if (!state.templateFile || !state.csvFile) return
@@ -206,23 +287,41 @@ export function useGenerator() {
     }
   }
 
-  const reset = () => setState({
-    templateFile: null,
-    csvFile: null,
-    templateVariables: [],
-    templateConditions: [],
-    csvColumns: [],
-    csvRowCount: 0,
-    mapping: {},
-    conditionsMapping: {},
-    prefix: '',
-    nameColumn: '',
-    emailColumn: '',
-    step: 'upload',
-    error: null,
-    jobId: null,
-    signingDocuments: null
-  })
+  const reset = () => {
+    // Clean up preview URL
+    if (state.previewUrl) {
+      URL.revokeObjectURL(state.previewUrl)
+    }
+    if (previewAbortRef.current) {
+      previewAbortRef.current.abort()
+    }
+    setState({
+      templateFile: null,
+      csvFile: null,
+      templateVariables: [],
+      templateConditions: [],
+      csvColumns: [],
+      csvRows: [],
+      csvRowCount: 0,
+      mapping: {},
+      conditionsMapping: {},
+      prefix: '',
+      nameColumn: '',
+      emailColumn: '',
+      step: 'upload',
+      error: null,
+      jobId: null,
+      signingDocuments: null,
+      previewRowIndex: 0,
+      previewUrl: null,
+      previewLoading: false,
+      previewError: null
+    })
+  }
 
-  return { state, setTemplate, setCsv, setMapping, setConditionMapping, setPrefix, setNameColumn, setEmailColumn, generate, sendForSignature, reset }
+  return {
+    state, setTemplate, setCsv, setMapping, setConditionMapping,
+    setPrefix, setNameColumn, setEmailColumn, generate, sendForSignature, reset,
+    setPreviewRowIndex, generatePreview
+  }
 }

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { PreviewPanel } from './PreviewPanel'
 
 interface MappingStepProps {
   variables: string[]
@@ -17,11 +18,30 @@ interface MappingStepProps {
   onEmailColumnChange: (col: string) => void
   onGenerate: () => void
   onSendForSignature: () => void
+  // Preview props
+  templateFile: File | null
+  csvFile: File | null
+  csvRows: Record<string, string>[]
+  csvColumns: string[]
+  previewRowIndex: number
+  previewUrl: string | null
+  previewLoading: boolean
+  previewError: string | null
+  onPreviewRowIndexChange: (index: number) => void
+  onGeneratePreview: (
+    templateFile: File,
+    csvFile: File,
+    mapping: Record<string, string>,
+    conditionsMapping: Record<string, string>,
+    rowIndex: number
+  ) => void
 }
 
 export function MappingStep({
   variables, conditions, columns, mapping, conditionsMapping, prefix, nameColumn, emailColumn,
-  csvRowCount, onMapChange, onConditionMapChange, onPrefixChange, onNameColumnChange, onEmailColumnChange, onGenerate, onSendForSignature
+  csvRowCount, onMapChange, onConditionMapChange, onPrefixChange, onNameColumnChange, onEmailColumnChange, onGenerate, onSendForSignature,
+  templateFile, csvFile, csvRows, csvColumns, previewRowIndex, previewUrl, previewLoading, previewError,
+  onPreviewRowIndexChange, onGeneratePreview
 }: MappingStepProps) {
   const { t } = useTranslation()
   const allMapped = variables.every(v => mapping[v]) && conditions.every(c => conditionsMapping[c])
@@ -102,6 +122,23 @@ export function MappingStep({
           </div>
         </div>
       )}
+
+      {/* Live Document Preview */}
+      <PreviewPanel
+        templateFile={templateFile}
+        csvFile={csvFile}
+        mapping={mapping}
+        conditionsMapping={conditionsMapping}
+        csvRows={csvRows}
+        csvColumns={csvColumns}
+        csvRowCount={csvRowCount}
+        previewRowIndex={previewRowIndex}
+        previewUrl={previewUrl}
+        previewLoading={previewLoading}
+        previewError={previewError}
+        onRowIndexChange={onPreviewRowIndexChange}
+        onGeneratePreview={onGeneratePreview}
+      />
 
       <div>
         <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
