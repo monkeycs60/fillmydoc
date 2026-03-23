@@ -38,6 +38,7 @@
     "generation_failed": "La generación falló"
   },
   "landing": {
+    "nav_history": "Historial",
     "nav_pricing": "Precios",
     "nav_faq": "FAQ",
     "nav_cta": "Empezar",
@@ -108,6 +109,32 @@
     "refresh": "Actualizar vista previa",
     "configure_mapping": "Configure el mapeo de variables arriba para ver una vista previa en vivo de su documento.",
     "generating": "Generando vista previa..."
+  },
+  "history": {
+    "title": "Historial",
+    "subtitle": "Todas tus generaciones de documentos",
+    "new_generation": "Nueva generacion",
+    "stat_total_docs": "Documentos generados",
+    "stat_total_jobs": "Generaciones",
+    "stat_signing_rate": "Tasa de firma",
+    "stat_avg_time": "Tiempo medio",
+    "filter_mode": "Modo",
+    "filter_all": "Todos",
+    "filter_template": "Plantilla",
+    "filter_template_placeholder": "Buscar...",
+    "filter_date_from": "Desde",
+    "filter_date_to": "Hasta",
+    "filter_reset": "Reiniciar",
+    "mode_download": "Descarga",
+    "mode_sign": "Firma",
+    "docs": "docs",
+    "documents": "Documentos",
+    "view_signing_dashboard": "Ver seguimiento de firmas",
+    "download_completed": "Descarga completada. Se envio el zip.",
+    "empty": "Ninguna generacion por el momento.",
+    "empty_cta": "Genera tus primeros documentos",
+    "prev": "Anterior",
+    "next": "Siguiente"
   },
   "signing": {
     "page_title": "Firma del documento",

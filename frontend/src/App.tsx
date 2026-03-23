@@ -20,7 +20,12 @@ function App() {
       <div className="max-w-xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-10">
           <h1 className="font-mono text-2xl font-bold text-gray-900">{t('app.title')}</h1>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-4">
+            <Link to={`/${locale}/history`} className="text-xs text-gray-400 hover:text-gray-600">
+              {t('history.title')}
+            </Link>
+            <LanguageSwitcher />
+          </div>
         </div>
         <p className="text-gray-400 text-sm -mt-8 mb-10">{t('app.tagline')}</p>
 

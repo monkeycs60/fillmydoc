@@ -16,6 +16,7 @@ export function LandingPage() {
       <nav className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
         <span className="font-mono text-xl font-bold text-gray-900">FillMyDoc</span>
         <div className="flex items-center gap-8">
+          <Link to={`/${locale}/history`} className="text-sm text-gray-500 hover:text-gray-900">{t('landing.nav_history')}</Link>
           <a href="#pricing" className="text-sm text-gray-500 hover:text-gray-900">{t('landing.nav_pricing')}</a>
           <a href="#faq" className="text-sm text-gray-500 hover:text-gray-900">{t('landing.nav_faq')}</a>
           <LanguageSwitcher />

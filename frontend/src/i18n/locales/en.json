@@ -38,6 +38,7 @@
     "generation_failed": "Generation failed"
   },
   "landing": {
+    "nav_history": "History",
     "nav_pricing": "Pricing",
     "nav_faq": "FAQ",
     "nav_cta": "Get started",
@@ -108,6 +109,32 @@
     "refresh": "Refresh preview",
     "configure_mapping": "Configure the variable mapping above to see a live preview of your document.",
     "generating": "Generating preview..."
+  },
+  "history": {
+    "title": "History",
+    "subtitle": "All your document generations",
+    "new_generation": "New generation",
+    "stat_total_docs": "Documents generated",
+    "stat_total_jobs": "Generations",
+    "stat_signing_rate": "Signing rate",
+    "stat_avg_time": "Avg. time",
+    "filter_mode": "Mode",
+    "filter_all": "All",
+    "filter_template": "Template",
+    "filter_template_placeholder": "Search...",
+    "filter_date_from": "From",
+    "filter_date_to": "To",
+    "filter_reset": "Reset",
+    "mode_download": "Download",
+    "mode_sign": "Signature",
+    "docs": "docs",
+    "documents": "Documents",
+    "view_signing_dashboard": "View signing dashboard",
+    "download_completed": "Download completed. The zip was sent.",
+    "empty": "No generations yet.",
+    "empty_cta": "Generate your first documents",
+    "prev": "Previous",
+    "next": "Next"
   },
   "signing": {
     "page_title": "Document Signing",

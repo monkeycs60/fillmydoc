@@ -8,7 +8,7 @@ import { execFile } from 'child_process'
 import { promisify } from 'util'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
-import { db, signingRequests } from '../db/index'
+import { db, signingRequests, jobs } from '../db/index'
 import { hashDocument, appendAuditEvent } from '../services/otp'
 import { scheduleReminders } from '../services/reminder'
 
@@ -100,8 +100,18 @@ generate.post('/', async (c) => {
 
     // Check if signing mode
     const mode = formData.get('mode') as string
+    const templateName = templateFile.name || 'template.docx'
 
     if (mode === 'sign') {
+      // Record the job
+      db.insert(jobs).values({
+        id: jobId,
+        templateName,
+        csvRowCount: rows.length,
+        mode: 'sign',
+        status: 'completed',
+        createdAt: new Date().toISOString(),
+      }).run()
       // Move PDFs to persistent storage
       const persistDir = join(process.cwd(), 'data', 'pdfs', jobId)
       await mkdir(persistDir, { recursive: true })
@@ -170,6 +180,16 @@ generate.post('/', async (c) => {
 
       return c.json({ jobId, documents })
     }
+
+    // Record the job (download mode)
+    db.insert(jobs).values({
+      id: jobId,
+      templateName,
+      csvRowCount: rows.length,
+      mode: 'download',
+      status: 'completed',
+      createdAt: new Date().toISOString(),
+    }).run()
 
     // Create zip of PDFs
     const archive = archiver('zip', { zlib: { level: 6 } })
