@@ -139,6 +139,17 @@
     "dashboard_download_all": "Descargar todos los firmados",
     "dashboard_back": "← Volver",
     "send_for_signature": "Enviar para firma",
-    "or_download_zip": "o descargar zip"
+    "or_download_zip": "o descargar zip",
+    "reminder_configure": "Configurar recordatorios",
+    "reminder_settings": "Recordatorios automaticos",
+    "reminder_max_label": "Max recordatorios por documento",
+    "reminder_disabled": "Desactivado",
+    "reminder_interval_label": "Frecuencia de recordatorios",
+    "reminder_interval_default": "Estandar (D+3, D+7, D+14)",
+    "reminder_interval_frequent": "Frecuente (D+1, D+3, D+5, D+7)",
+    "reminder_interval_relaxed": "Espaciado (D+5, D+14, D+30)",
+    "reminder_save": "Guardar",
+    "reminder_count": "Recordado {{count}}/{{max}} veces",
+    "reminder_next": "Proximo recordatorio: {{date}}"
   }
 }

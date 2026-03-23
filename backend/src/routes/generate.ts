@@ -10,6 +10,7 @@ import { join } from 'path'
 import { randomUUID } from 'crypto'
 import { db, signingRequests } from '../db/index'
 import { hashDocument, appendAuditEvent } from '../services/otp'
+import { scheduleReminders } from '../services/reminder'
 
 const execFileAsync = promisify(execFile)
 
@@ -148,6 +149,11 @@ generate.post('/', async (c) => {
           auditTrail,
           createdAt: new Date().toISOString()
         }).run()
+
+        // Schedule automatic reminders for this document
+        if (recipientEmail) {
+          scheduleReminders(signingId)
+        }
 
         documents.push({
           id: signingId,

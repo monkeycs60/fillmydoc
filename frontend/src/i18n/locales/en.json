@@ -139,6 +139,17 @@
     "dashboard_download_all": "Download all signed",
     "dashboard_back": "← Back",
     "send_for_signature": "Send for signature",
-    "or_download_zip": "or download zip"
+    "or_download_zip": "or download zip",
+    "reminder_configure": "Configure reminders",
+    "reminder_settings": "Automatic reminders",
+    "reminder_max_label": "Max reminders per document",
+    "reminder_disabled": "Disabled",
+    "reminder_interval_label": "Reminder schedule",
+    "reminder_interval_default": "Standard (J+3, J+7, J+14)",
+    "reminder_interval_frequent": "Frequent (J+1, J+3, J+5, J+7)",
+    "reminder_interval_relaxed": "Relaxed (J+5, J+14, J+30)",
+    "reminder_save": "Save",
+    "reminder_count": "Reminded {{count}}/{{max}} times",
+    "reminder_next": "Next reminder: {{date}}"
   }
 }
