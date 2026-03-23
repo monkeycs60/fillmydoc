@@ -8,6 +8,7 @@ import { LandingPage } from './pages/LandingPage'
 import { SigningPage } from './pages/SigningPage'
 import { SigningDashboard } from './pages/SigningDashboard'
 import { HistoryDashboard } from './pages/HistoryDashboard'
+import { WebhooksPage } from './pages/WebhooksPage'
 import { LocaleProvider } from './components/LocaleProvider'
 
 const supportedLocales = ['fr', 'en', 'es', 'de']
@@ -27,6 +28,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/:locale/sign/:token" element={<LocaleProvider><SigningPage /></LocaleProvider>} />
         <Route path="/:locale/signing/:jobId" element={<LocaleProvider><SigningDashboard /></LocaleProvider>} />
         <Route path="/:locale/history" element={<LocaleProvider><HistoryDashboard /></LocaleProvider>} />
+        <Route path="/:locale/webhooks" element={<LocaleProvider><WebhooksPage /></LocaleProvider>} />
         <Route path="*" element={<Navigate to={`/${detectLocale()}`} replace />} />
       </Routes>
     </BrowserRouter>

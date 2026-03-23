@@ -19,6 +19,7 @@ export function LandingPage() {
           <Link to={`/${locale}/history`} className="text-sm text-gray-500 hover:text-gray-900">{t('landing.nav_history')}</Link>
           <a href="#pricing" className="text-sm text-gray-500 hover:text-gray-900">{t('landing.nav_pricing')}</a>
           <a href="#faq" className="text-sm text-gray-500 hover:text-gray-900">{t('landing.nav_faq')}</a>
+          <Link to={`/${locale}/webhooks`} className="text-sm text-gray-500 hover:text-gray-900">{t('webhooks.nav_label')}</Link>
           <LanguageSwitcher />
           <Link
             to={`/${locale}/app`}

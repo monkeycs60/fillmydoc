@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
-import { signingRequests, jobs, savedTemplates } from './schema'
+import { signingRequests, jobs, savedTemplates, webhooks, webhookLogs } from './schema'
 import { join } from 'path'
 import { mkdirSync } from 'fs'
 
@@ -69,6 +69,36 @@ sqlite.exec(`
   )
 `)
 
+// Webhooks table
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS webhooks (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    secret TEXT NOT NULL,
+    events TEXT NOT NULL,
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  )
+`)
+
+// Webhook logs table
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS webhook_logs (
+    id TEXT PRIMARY KEY,
+    webhook_id TEXT NOT NULL,
+    event TEXT NOT NULL,
+    payload TEXT NOT NULL,
+    status_code INTEGER,
+    response TEXT,
+    success INTEGER NOT NULL DEFAULT 0,
+    attempt INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL
+  )
+`)
+
+
 // Migrate existing tables — add new columns if missing
 const columns = sqlite.prepare("PRAGMA table_info(signing_requests)").all() as Array<{ name: string }>
 const columnNames = new Set(columns.map(c => c.name))
@@ -96,4 +126,4 @@ for (const [col, type] of migrations) {
   }
 }
 
-export { signingRequests, jobs, savedTemplates }
+export { signingRequests, jobs, savedTemplates, webhooks, webhookLogs }

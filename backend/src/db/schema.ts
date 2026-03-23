@@ -54,3 +54,26 @@ export const signingRequests = sqliteTable('signing_requests', {
   reminderIntervals: text('reminder_intervals'), // JSON array of day intervals, e.g. [3,7,14]
   createdAt: text('created_at').notNull(),
 })
+
+export const webhooks = sqliteTable('webhooks', {
+  id: text('id').primaryKey(), // UUID
+  name: text('name').notNull(),
+  url: text('url').notNull(),
+  secret: text('secret').notNull(), // 32-byte hex for HMAC-SHA256
+  events: text('events').notNull(), // JSON array of event names
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+})
+
+export const webhookLogs = sqliteTable('webhook_logs', {
+  id: text('id').primaryKey(), // UUID
+  webhookId: text('webhook_id').notNull(),
+  event: text('event').notNull(),
+  payload: text('payload').notNull(), // JSON string
+  statusCode: integer('status_code'),
+  response: text('response'), // response body (truncated)
+  success: integer('success', { mode: 'boolean' }).notNull().default(false),
+  attempt: integer('attempt').notNull().default(1),
+  createdAt: text('created_at').notNull(),
+})

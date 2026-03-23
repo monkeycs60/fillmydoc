@@ -6,6 +6,7 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import { generateOtp, verifyOtp, hashDocument, appendAuditEvent, parseAuditTrail } from '../services/otp'
 import { isEsignEnabled, createSigningRequest, getSigningStatus, downloadSignedDocument } from '../services/esignature'
 import { configureDocumentReminders, configureJobReminders } from '../services/reminder'
+import { triggerWebhook } from '../services/webhook'
 
 const signing = new Hono()
 
@@ -17,6 +18,15 @@ signing.get('/:id', async (c) => {
   const doc = db.select().from(signingRequests).where(eq(signingRequests.id, id)).get()
 
   if (!doc) return c.json({ error: 'Document not found' }, 404)
+
+  // Fire document.viewed webhook
+  triggerWebhook('document.viewed', {
+    documentId: doc.id,
+    jobId: doc.jobId,
+    fileName: doc.fileName,
+    recipientName: doc.recipientName,
+    viewedAt: new Date().toISOString(),
+  })
 
   return c.json({
     id: doc.id,
@@ -314,6 +324,20 @@ signing.post('/:id/verify-otp', async (c) => {
     .where(eq(signingRequests.id, id))
     .run()
 
+  // Fire document.signed webhook
+  triggerWebhook('document.signed', {
+    documentId: doc.id,
+    jobId: doc.jobId,
+    fileName: doc.fileName,
+    recipientName: body.name.trim(),
+    recipientEmail: doc.recipientEmail,
+    signedAt: signedAt.toISOString(),
+    method: 'otp_email',
+  })
+
+  // Check if all documents in the job are signed
+  checkJobCompletion(doc.jobId)
+
   return c.json({
     success: true,
     signedAt: signedAt.toISOString(),
@@ -490,6 +514,20 @@ signing.post('/:id/sign', async (c) => {
     .where(eq(signingRequests.id, id))
     .run()
 
+  // Fire document.signed webhook
+  triggerWebhook('document.signed', {
+    documentId: doc.id,
+    jobId: doc.jobId,
+    fileName: doc.fileName,
+    recipientName: body.name.trim(),
+    recipientEmail: doc.recipientEmail,
+    signedAt: signedAt.toISOString(),
+    method: 'simple',
+  })
+
+  // Check if all documents in the job are signed
+  checkJobCompletion(doc.jobId)
+
   return c.json({
     success: true,
     signedAt: signedAt.toISOString(),
@@ -537,6 +575,21 @@ signing.post('/:id/esign-check', async (c) => {
         })
         .where(eq(signingRequests.id, id))
         .run()
+
+      // Fire document.signed webhook
+      triggerWebhook('document.signed', {
+        documentId: doc.id,
+        jobId: doc.jobId,
+        fileName: doc.fileName,
+        recipientName: doc.signedByName,
+        recipientEmail: doc.recipientEmail,
+        signedAt: status.signedAt || new Date().toISOString(),
+        method: 'esign',
+        provider: 'openapi',
+      })
+
+      // Check if all documents in the job are signed
+      checkJobCompletion(doc.jobId)
 
       return c.json({ status: 'esign_completed', signedAt: status.signedAt })
     }
@@ -903,6 +956,33 @@ async function sendOtpEmail(
 
   // No email service configured — fall back to console
   return false
+}
+
+// ---------------------------------------------------------------------------
+// Helper: Check if all documents in a job are signed, trigger job.completed
+// ---------------------------------------------------------------------------
+function checkJobCompletion(jobId: string): void {
+  try {
+    const docs = db.select().from(signingRequests).where(eq(signingRequests.jobId, jobId)).all()
+    const allSigned = docs.every(d => d.status === 'signed' || d.status === 'esign_completed')
+
+    if (allSigned && docs.length > 0) {
+      triggerWebhook('job.completed', {
+        jobId,
+        totalDocuments: docs.length,
+        completedAt: new Date().toISOString(),
+        documents: docs.map(d => ({
+          documentId: d.id,
+          fileName: d.fileName,
+          recipientName: d.recipientName,
+          signedAt: d.signedAt,
+          status: d.status,
+        })),
+      })
+    }
+  } catch (error) {
+    console.error('[Webhook] Error checking job completion:', error)
+  }
 }
 
 export default signing
