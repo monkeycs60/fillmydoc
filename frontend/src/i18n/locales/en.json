@@ -171,6 +171,7 @@
     "dashboard_esign_pending": "Signing in progress",
     "dashboard_copy": "Copy link",
     "dashboard_copied": "Copied!",
+    "dashboard_export_csv": "Export CSV",
     "dashboard_download_all": "Download all signed",
     "dashboard_back": "← Back",
     "send_for_signature": "Send for signature",
