@@ -136,6 +136,7 @@
     "dashboard_esign_pending": "Signierung läuft",
     "dashboard_copy": "Link kopieren",
     "dashboard_copied": "Kopiert!",
+    "dashboard_export_csv": "CSV exportieren",
     "dashboard_download_all": "Alle signierten herunterladen",
     "dashboard_back": "← Zurück",
     "send_for_signature": "Zur Unterschrift senden",

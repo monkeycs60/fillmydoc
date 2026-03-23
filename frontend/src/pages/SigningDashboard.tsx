@@ -36,6 +36,24 @@ export function SigningDashboard() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
+  const exportCsv = async () => {
+    try {
+      const res = await fetch(`/api/signing/job/${jobId}/export`)
+      if (!res.ok) return
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `signing-export-${jobId}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      // silently fail
+    }
+  }
+
   const isDocSigned = (status: string) =>
     status === 'signed' || status === 'esign_completed'
 
@@ -101,9 +119,20 @@ export function SigningDashboard() {
 
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-mono text-2xl font-bold text-gray-900">{t('signing.dashboard_title')}</h1>
-          <span className="text-sm text-gray-400">
-            {signed}/{total} {t('signing.dashboard_signed').toLowerCase()}
-          </span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={exportCsv}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors text-gray-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              {t('signing.dashboard_export_csv')}
+            </button>
+            <span className="text-sm text-gray-400">
+              {signed}/{total} {t('signing.dashboard_signed').toLowerCase()}
+            </span>
+          </div>
         </div>
 
         {/* Progress bar */}

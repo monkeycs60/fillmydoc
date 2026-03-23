@@ -551,6 +551,46 @@ signing.post('/:id/esign-check', async (c) => {
 })
 
 // ---------------------------------------------------------------------------
+// GET /job/:jobId/export — Export signing status as CSV
+// ---------------------------------------------------------------------------
+signing.get('/job/:jobId/export', async (c) => {
+  const { jobId } = c.req.param()
+  const docs = db.select().from(signingRequests).where(eq(signingRequests.jobId, jobId)).all()
+
+  if (docs.length === 0) {
+    return c.json({ error: 'No documents found for this job' }, 404)
+  }
+
+  const escapeCsv = (value: string | null | undefined): string => {
+    if (value == null) return ''
+    const str = String(value)
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return `"${str.replace(/"/g, '""')}"`
+    }
+    return str
+  }
+
+  const headers = ['Recipient Name', 'Email', 'Status', 'Signed At', 'Signed By', 'Created At']
+  const rows = docs.map(d => [
+    escapeCsv(d.recipientName),
+    escapeCsv(d.recipientEmail),
+    escapeCsv(d.status),
+    escapeCsv(d.signedAt),
+    escapeCsv(d.signedByName),
+    escapeCsv(d.createdAt),
+  ].join(','))
+
+  const csv = [headers.join(','), ...rows].join('\n')
+
+  return new Response(csv, {
+    headers: {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="signing-export-${jobId}.csv"`,
+    },
+  })
+})
+
+// ---------------------------------------------------------------------------
 // GET /job/:jobId — Dashboard: list all documents for a job
 // ---------------------------------------------------------------------------
 signing.get('/job/:jobId', async (c) => {
