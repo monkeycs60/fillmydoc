@@ -251,5 +251,29 @@
     "error_name_required": "El nombre es obligatorio",
     "error_url_required": "La URL es obligatoria",
     "error_events_required": "Seleccione al menos un evento"
+  },
+  "branding": {
+    "title": "Marca personalizada",
+    "subtitle": "Personalice la apariencia de sus documentos y páginas de firma",
+    "back": "\u2190 Volver a la app",
+    "logo_label": "Logo de la empresa",
+    "logo_hint": "Arrastre y suelte su logo aquí, o haga clic para buscar",
+    "logo_formats": "PNG, JPEG o SVG \u2014 máx. 2 MB",
+    "logo_type_error": "Tipo de archivo no válido. Aceptados: PNG, JPEG, SVG",
+    "logo_size_error": "Archivo demasiado grande. Máximo 2 MB.",
+    "remove_logo": "Eliminar logo",
+    "company_label": "Nombre de la empresa",
+    "company_placeholder": "Su Empresa",
+    "company_hint": "Se muestra en las páginas de firma y en los bloques de firma PDF en lugar de \"FillMyDoc\"",
+    "color_label": "Color principal",
+    "preview_label": "Vista previa en vivo",
+    "preview_document": "Área de vista previa del documento",
+    "preview_signed_by": "Firmado por",
+    "preview_date": "Fecha",
+    "save": "Guardar configuración de marca",
+    "saving": "Guardando...",
+    "saved": "Configuración de marca guardada correctamente",
+    "load_error": "No se pudo cargar la configuración de marca",
+    "delete_error": "No se pudo eliminar el logo"
   }
 }

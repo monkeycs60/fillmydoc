@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
-import { signingRequests, jobs, savedTemplates, webhooks, webhookLogs } from './schema'
+import { signingRequests, jobs, savedTemplates, webhooks, webhookLogs, branding } from './schema'
 import { join } from 'path'
 import { mkdirSync } from 'fs'
 
@@ -98,6 +98,22 @@ sqlite.exec(`
   )
 `)
 
+// Create branding table
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS branding (
+    id TEXT PRIMARY KEY,
+    logo_path TEXT,
+    primary_color TEXT DEFAULT '#2563eb',
+    company_name TEXT,
+    updated_at TEXT
+  )
+`)
+
+// Insert default branding row if not exists
+sqlite.exec(`
+  INSERT OR IGNORE INTO branding (id, primary_color) VALUES ('default', '#2563eb')
+`)
+
 
 // Migrate existing tables — add new columns if missing
 const columns = sqlite.prepare("PRAGMA table_info(signing_requests)").all() as Array<{ name: string }>
@@ -126,4 +142,4 @@ for (const [col, type] of migrations) {
   }
 }
 
-export { signingRequests, jobs, savedTemplates, webhooks, webhookLogs }
+export { signingRequests, jobs, savedTemplates, webhooks, webhookLogs, branding }

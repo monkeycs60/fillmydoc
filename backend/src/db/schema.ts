@@ -24,6 +24,14 @@ export const savedTemplates = sqliteTable('saved_templates', {
   updatedAt: text('updated_at').notNull(),
 })
 
+export const branding = sqliteTable('branding', {
+  id: text('id').primaryKey(), // single row, id='default'
+  logoPath: text('logo_path'),
+  primaryColor: text('primary_color').default('#2563eb'),
+  companyName: text('company_name'),
+  updatedAt: text('updated_at'),
+})
+
 export const signingRequests = sqliteTable('signing_requests', {
   id: text('id').primaryKey(), // UUID
   jobId: text('job_id').notNull(), // groups documents from the same generation

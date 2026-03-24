@@ -251,5 +251,29 @@
     "error_name_required": "Name ist erforderlich",
     "error_url_required": "URL ist erforderlich",
     "error_events_required": "Wählen Sie mindestens ein Ereignis"
+  },
+  "branding": {
+    "title": "Branding anpassen",
+    "subtitle": "Passen Sie das Erscheinungsbild Ihrer Dokumente und Signaturseiten an",
+    "back": "\u2190 Zurück zur App",
+    "logo_label": "Firmenlogo",
+    "logo_hint": "Logo hierher ziehen oder klicken zum Durchsuchen",
+    "logo_formats": "PNG, JPEG oder SVG \u2014 max. 2 MB",
+    "logo_type_error": "Ungültiger Dateityp. Akzeptiert: PNG, JPEG, SVG",
+    "logo_size_error": "Datei zu groß. Maximal 2 MB.",
+    "remove_logo": "Logo entfernen",
+    "company_label": "Firmenname",
+    "company_placeholder": "Ihre Firma",
+    "company_hint": "Wird auf Signaturseiten und in PDF-Signaturblöcken anstelle von \"FillMyDoc\" angezeigt",
+    "color_label": "Primärfarbe",
+    "preview_label": "Live-Vorschau",
+    "preview_document": "Dokumentvorschau-Bereich",
+    "preview_signed_by": "Unterschrieben von",
+    "preview_date": "Datum",
+    "save": "Branding-Einstellungen speichern",
+    "saving": "Wird gespeichert...",
+    "saved": "Branding-Einstellungen erfolgreich gespeichert!",
+    "load_error": "Branding-Einstellungen konnten nicht geladen werden",
+    "delete_error": "Logo konnte nicht gelöscht werden"
   }
 }
